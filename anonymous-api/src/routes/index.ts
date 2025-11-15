@@ -10,7 +10,7 @@ const IndexRouter: Router = express.Router()
 
 IndexRouter.use('/auth', authRoutes)
 
-// IndexRouter.use(auth)
+IndexRouter.use(auth)
 IndexRouter.use('/subjects', subjectsRoutes)
 IndexRouter.use('/subject', subjectRoutes)
 // IndexRouter.use(authen)

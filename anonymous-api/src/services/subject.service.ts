@@ -70,9 +70,9 @@ class SubjectService {
                 cond: {
                   $and: [
                     {
-                      $ne: ['$$f.summary_content', null]
+                      $ne: ['$$f.summaryContent', null]
                     },
-                    { $ne: ['$$f.summary_content', ''] }
+                    { $ne: ['$$f.summaryContent', ''] }
                   ]
                 }
               }
@@ -133,9 +133,9 @@ class SubjectService {
                 cond: {
                   $and: [
                     {
-                      $ne: ['$$f.summary_content', null]
+                      $ne: ['$$f.summaryContent', null]
                     },
-                    { $ne: ['$$f.summary_content', ''] }
+                    { $ne: ['$$f.summaryContent', ''] }
                   ]
                 }
               }
