@@ -12,7 +12,7 @@ const validateDto = (dtoClass: any) => async (req: Request, res: Response, next:
 
   // Nếu có file được upload thì thêm buffer & fileName
   if (req.file && req.file.buffer) {
-    payload.image = req.file.buffer
+    payload.file = req.file.buffer
     payload.fileName = req.file.originalname
   }
 

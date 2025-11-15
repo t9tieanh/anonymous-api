@@ -25,7 +25,7 @@ fileRoutes.get('/subjects/:subjectId/files', authenticate, fileController.getFil
  *          quizQuestions (optional) - Số câu hỏi (default: 10)
  *          quizDifficulty (optional) - Độ khó (Easy/Medium/Hard)
  */
-fileRoutes.post('/files', authenticate, uploadFile.single('file'), fileController.uploadFile)
+fileRoutes.post('', authenticate, uploadFile.single('file'), fileController.uploadFile)
 
 /**
  * @route   GET /files/:fileId
