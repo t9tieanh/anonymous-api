@@ -37,7 +37,8 @@ export const uploadFile = multer({
 export const uploadToCloudinary = (
   fileBuffer: Buffer,
   originalFilename: string,
-  folder: string = 'hackathon-files'
+  folder: string = 'hackathon-files',
+  uploadPreset?: string
 ): Promise<UploadApiResponse> => {
   return new Promise((resolve, reject) => {
     // Lấy tên file và extension
@@ -55,15 +56,27 @@ export const uploadToCloudinary = (
     const publicId = `${folder}/${filenameWithoutExt}_${timestamp}_${randomId}${ext}`
 
     // Tạo upload stream
+    const options: Parameters<typeof cloudinary.uploader.upload_stream>[0] = {
+      resource_type: 'raw',
+      type: 'upload',
+      overwrite: false,
+      invalidate: true
+    }
+    if (uploadPreset) {
+      // Khi dùng unsigned upload preset, KHÔNG set public_id để tránh xung đột với
+      // các rule như use_filename/unique_filename/folder do preset định nghĩa.
+      ; (options as any).upload_preset = uploadPreset
+      // Truyền tên file gốc để preset (với Use filename = true) lấy đúng tên
+      const safeOriginal = `${filenameWithoutExt}${ext}`
+        ; (options as any).filename_override = safeOriginal
+    } else {
+      // Không dùng preset -> kiểm soát đầy đủ public_id và access_mode
+      ; (options as any).public_id = publicId
+        ; (options as any).access_mode = 'public'
+    }
+
     const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        resource_type: 'raw', // Luôn dùng 'raw' cho documents (PDF, DOCX, DOC, MD)
-        public_id: publicId, // Đặt public_id rõ ràng với extension
-        access_mode: 'public', // Đảm bảo file có thể truy cập công khai (tránh lỗi 401)
-        type: 'upload', // Đảm bảo file được upload đúng cách
-        overwrite: false, // Không ghi đè file trùng tên
-        invalidate: true // Xóa cache khi upload
-      },
+      options,
       (error, result) => {
         if (error || !result) {
           reject(error || new Error('Upload failed'))

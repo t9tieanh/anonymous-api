@@ -7,7 +7,8 @@ import { errorHandlingMiddleware } from '~/middleware/error-handler.midleware'
 import http from 'http'
 import debugRoutes from './routes/debug/debug.routes'
 import router from '~/routes/index'
-// import router from './routes/summarize.route'
+import ai_router from './routes/summarize.route'
+import fileRoutes from './routes/file.route'
 
 const START_SERVER = async () => {
   const app = express()
@@ -25,8 +26,10 @@ const START_SERVER = async () => {
   app.use(cors(corsOptions))
 
   app.use('/hackathon', router)
+  app.use('/hackathon', fileRoutes)
   app.use('/debug', debugRoutes)
-  // app.use('/api', router)
+  app.use('/api', ai_router)
+  app.use('/api', fileRoutes)
   app.use(errorHandlingMiddleware)
 
   // tạo server duy nhất
