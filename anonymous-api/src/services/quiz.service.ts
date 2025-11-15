@@ -18,6 +18,7 @@ export interface QuizQuestion {
   question: string
   options: Record<QuizOptionKey, string>
   answer: QuizOptionKey
+  explain?: string
 }
 
 export interface GenerateQuizParams {
@@ -104,11 +105,26 @@ export const createQuiz = async (fileId: string, numQuestions: number, difficult
         name: `Câu ${idx + 1}`,
         question: q.question,
         quizId: createdQuiz._id,
+        explanation: q.explain || '',
         answers
       }
     })
 
-    await Question.insertMany(questionDocs)
+    console.log('Created question docs hêlooo:', questionDocs)
+
+    try {
+      Question.insertMany(questionDocs)
+      .then(result => {
+        const ids = result.map(doc => doc._id)
+        console.log('✔ Insert thành công!', ids)
+      })
+      .catch(err => {
+        console.error('❌ Insert thất bại!', err)
+      })
+
+    } catch (e) {
+      console.error('Failed to insert question docs', e)
+    }
 
     // increment quizCount on file
     try {
@@ -151,7 +167,8 @@ JSON schema to follow:
     {
       "question": "...",
       "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
-      "answer": "A|B|C|D"
+      "answer": "A|B|C|D",
+      "explain": "..." // brief explanation of the correct answer
     }
   ]
 }
@@ -195,6 +212,8 @@ ${text}
     throw new Error('Model did not return valid quiz JSON')
   }
 
+  console.log('Generated questions: ---- raw', json)
+
   // Normalize and validate shape
   const qs: QuizQuestion[] = json.questions
     .map((q: any) => normalizeQuestion(q))
@@ -205,6 +224,8 @@ ${text}
     // Not enough valid questions; still return what we have but signal issue
     // Alternatively, you can throw an error here
   }
+
+  console.log('Generated questions: ---- final', qs)
 
   return qs
 }
@@ -252,9 +273,10 @@ const normalizeQuestion = (q: any): QuizQuestion | null => {
   const answer = String(q.answer ?? '')
     .trim()
     .toUpperCase()
+  const explain = String(q.explain ?? '').trim()
   const isValid = question && A && B && C && D && ['A', 'B', 'C', 'D'].includes(answer)
   if (!isValid) return null
-  return { question, options: { A, B, C, D }, answer: answer as QuizOptionKey }
+  return { question, options: { A, B, C, D }, answer: answer as QuizOptionKey, explain }
 }
 
 export const getQuizByIdService = async (quizId: string): Promise<IQuiz | null> => {
