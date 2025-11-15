@@ -8,11 +8,19 @@ export interface UserDoc extends Document {
   email: string
   image?: string
   name: string
+  username: string
   isModified(path: string): boolean
 }
 
 const UserSchema: Schema = new Schema({
   password: { type: String, select: false },
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+    minlength: 3,
+    maxlength: 50
+  },
 
   email: {
     type: String,

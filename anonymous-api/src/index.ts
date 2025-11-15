@@ -27,10 +27,10 @@ const START_SERVER = async () => {
   app.use(cors(corsOptions))
 
   app.use('/hackathon', router)
-  app.use('/hackathon', fileRoutes)
-  app.use('/debug', debugRoutes)
+  // app.use('/hackathon', fileRoutes)
+  // app.use('/debug', debugRoutes)
   // app.use('/api', router)
-  app.use('/api', ai_router)
+  // app.use('/api', ai_router)
   // app.use('/api', fileRoutes)
   app.use(errorHandlingMiddleware)
 
