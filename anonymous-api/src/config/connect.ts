@@ -1,6 +1,4 @@
 import CONNECT_DB from './mongodb'
-import Redis from './redis'
-import RabbitClient from './rabbitmq'
 
 export const CONNECT_DATABASES = async (): Promise<void> => {
   try {
