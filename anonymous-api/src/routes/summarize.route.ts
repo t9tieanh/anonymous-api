@@ -1,8 +1,8 @@
 import { Router } from 'express'
 import multer from 'multer'
-import { handleSummarize } from '../controllers/summarizeController'
-import { handleGenerateQuiz } from '../controllers/quizController'
-import { handleTranslateHtml } from '../controllers/translateController'
+import { handleTranslateHtml } from '../controllers/translate.controller'
+import { handleSummarize } from '../controllers/summarize.controller'
+import { handleGenerateQuiz } from '../controllers/quiz.controller'
 
 const router = Router()
 const upload = multer({ dest: 'uploads/' })
