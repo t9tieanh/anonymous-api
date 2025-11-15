@@ -1,5 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios'
+import ApiError from '~/middleware/ApiError'
+import { FileModel } from '~/models/file.model'
+import fs from 'fs'
+import os from 'os'
+import path from 'path'
+import stream from 'stream'
+import { promisify } from 'util'
+import { extractTextFromFile } from '~/utils/fileParser'
 
 export type QuizOptionKey = 'A' | 'B' | 'C' | 'D'
 
@@ -14,6 +22,40 @@ export interface GenerateQuizParams {
   apiKey: string
   numQuestions: number
   difficulty: string // e.g. easy|medium|hard or Vietnamese labels
+}
+
+const pipeline = promisify(stream.pipeline)
+
+const getFile = async (url: string): Promise<{ path: string; mimetype?: string }> => {
+  if (!url) throw new Error('No file URL provided')
+  const res = await axios.get(url, { responseType: 'stream' })
+  const contentType = res.headers['content-type'] as string | undefined
+  const ext = contentType ? (contentType.split('/')[1] || '') : ''
+  const tmpName = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext ? `.${ext.split(';')[0]}` : ''}`
+  const dest = path.join(os.tmpdir(), tmpName)
+  await pipeline(res.data as stream.Readable, fs.createWriteStream(dest))
+  return { path: dest, mimetype: contentType }
+}
+
+export const createQuiz = async (fileId: string, numQuestions: number, difficulty: string): Promise<QuizQuestion[]> => {
+  const currentFile = await FileModel.findById(fileId)
+  if (!currentFile)
+    throw new ApiError(404, 'File not found')
+
+  const { path: localPath, mimetype } = await getFile(currentFile.cloudinaryUrl as string)
+  try {
+    const text = await extractTextFromFile(localPath, mimetype || '')
+    const questions = await generateQuiz({ text, apiKey: process.env.GEMINI_API_KEY || '', numQuestions, difficulty })
+
+    // optional: persist generated quiz back to file doc if desired
+    // currentFile.generatedQuiz = questions
+    // await currentFile.save()
+
+    return questions
+  } finally {
+    // best-effort cleanup
+    fs.unlink(localPath, () => {})
+  }
 }
 
 export const generateQuiz = async ({
