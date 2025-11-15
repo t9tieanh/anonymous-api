@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Types  } from 'mongoose';
+import mongoose, { Schema, Document, Types } from 'mongoose'
 
 export interface ISubject extends Document {
   userId: Types.ObjectId // owner
