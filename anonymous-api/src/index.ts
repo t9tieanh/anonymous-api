@@ -1,4 +1,5 @@
 import express from 'express'
+import cors from 'cors'
 import 'reflect-metadata'
 import { CONNECT_DATABASES } from './config/connect'
 import { env } from '~/config/env'
@@ -12,6 +13,16 @@ const START_SERVER = async () => {
   const app = express()
 
   app.use(express.json())
+
+  // CORS configuration
+  const corsOptions: cors.CorsOptions = {
+    origin: env.FRONTEND_ORIGIN || (env.BUILD_MODE === 'dev' ? true : undefined),
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+  }
+
+  app.use(cors(corsOptions))
 
   app.use('/hackathon', router)
   app.use('/debug', debugRoutes)
