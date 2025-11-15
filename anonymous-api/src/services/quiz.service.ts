@@ -3,8 +3,6 @@
 import axios from 'axios'
 import ApiError from '~/middleware/ApiError'
 import { FileModel } from '~/models/file.model'
-import { Quiz } from '~/models/quiz.model'
-import { Question } from '~/models/question.model'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -125,7 +123,7 @@ export const createQuiz = async (fileId: string, numQuestions: number, difficult
     return questions
   } finally {
     // best-effort cleanup
-    fs.unlink(localPath, () => {})
+    fs.unlink(localPath, () => { })
   }
 }
 

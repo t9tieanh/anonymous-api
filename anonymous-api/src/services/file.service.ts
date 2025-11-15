@@ -213,7 +213,7 @@ class FileService {
       const text = await extractTextFromFile(extractedPath as string, file.mimetype)
       const { summary, aiMatchScore } = await summarizeText(text, GEMINI_API_KEY)
 
-      if (createdTmp && extractedPath) fs.unlink(extractedPath, () => {})
+      if (createdTmp && extractedPath) fs.unlink(extractedPath, () => { })
 
       return {
         file: this.formatFileResponse(newFile, subject.name, 0),
@@ -223,7 +223,7 @@ class FileService {
         }
       }
     } catch (err) {
-      if (createdTmp && extractedPath) fs.unlink(extractedPath, () => {})
+      if (createdTmp && extractedPath) fs.unlink(extractedPath, () => { })
       throw err
     }
   }

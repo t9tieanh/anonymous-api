@@ -29,7 +29,7 @@ export const ValidateSignature = async (
 
   try {
     const decoded = jwt.verify(token, env.APP_SECRET) as JwtPayloadDto
-    console.log('decode', decoded)
+    // console.log('decode', decoded)
 
     return decoded
   } catch {

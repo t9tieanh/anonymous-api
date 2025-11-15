@@ -3,11 +3,13 @@ import { StatusCodes } from 'http-status-codes'
 import qs from 'qs'
 import { env } from '~/config/env'
 import { UserModel } from '~/models/user.model'
-
+import { SubjectModel } from '~/models/subject.model'
+import subjectService from '../subject.service'
 import { GoogleOauthToken, GoogleUserResult } from '~/dto/request/Auth.dto'
 import ApiError from '~/middleware/ApiError'
 import { GenerateSignature } from '~/utils/JwtUtil'
 import { TokenType } from '~/enums/tokenType.enum'
+import { scrapeUtexSubjects } from './utexScraper'
 
 // function dùng để exchance token -> dùng authorization code
 const getGoogleOauthToken = async ({ code }: { code: string }): Promise<GoogleOauthToken> => {
@@ -91,6 +93,31 @@ const loginGoogle = async ({ code }: { code: string }) => {
 
     user = await newUser.save()
   }
+
+  // scrape dữ liệu môn học từ UTEX (trả về danh sách tên)
+  // Nếu scrape lỗi (ví dụ cookie hết hạn), vẫn cho đăng nhập bình thường
+  try {
+    const names = await scrapeUtexSubjects()
+    const userIdObj = user._id as any
+    const defaultColor = '#FFA500'
+
+    for (const rawName of names) {
+      const name = (rawName || '').trim()
+      if (!name) continue
+
+      const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const existed = await SubjectModel.findOne({
+        userId: userIdObj,
+        name: { $regex: new RegExp(`^${escaped}$`, 'i') }
+      })
+      if (existed) continue
+
+      await subjectService.createSubject(user.id as string, { name, color: defaultColor })
+    }
+  } catch (e) {
+    console.log('Scrape UTEX failed, skip subject seeding:', e)
+  }
+
 
   // trường hợp user đã onboard vào hệ thống -> trả thêm token
   return {
