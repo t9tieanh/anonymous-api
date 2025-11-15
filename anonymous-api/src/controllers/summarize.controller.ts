@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from 'express'
 import { extractTextFromFile } from '../utils/fileParser'
 import { summarizeText } from '../services/summarize.service'

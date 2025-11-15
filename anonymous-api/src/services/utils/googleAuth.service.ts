@@ -77,7 +77,7 @@ const loginGoogle = async ({ code }: { code: string }) => {
   }
 
   // tìm kiếm user xem user này đã được onboard vào hệ thống chưa
-  let user = await UserModel.findOne({ email: userData.email })
+  let user = await UserModel.findOne({ username: userData.email })
 
   // trường hợp user chưa được onboard vào hệ thống
   if (!user) {
@@ -85,7 +85,8 @@ const loginGoogle = async ({ code }: { code: string }) => {
     const newUser = new UserModel({
       email: userData.email,
       name: userData.name,
-      image: userData.picture
+      image: userData.picture,
+      username: userData.email
     })
 
     user = await newUser.save()

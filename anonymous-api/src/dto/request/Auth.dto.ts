@@ -1,4 +1,5 @@
 import { TokenType } from '~/enums/tokenType.enum'
+import { IsEmail } from 'class-validator'
 
 // payload cho jwt token
 export interface JwtPayloadDto {
@@ -26,4 +27,11 @@ export interface GoogleUserResult {
   family_name: string
   picture: string
   locale: string
+}
+
+export class UpdateProfile {
+  name?: string
+
+  @IsEmail()
+  email?: string
 }
