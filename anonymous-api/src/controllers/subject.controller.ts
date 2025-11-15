@@ -4,8 +4,15 @@ import subjectService, { CreateSubjectInput, UpdateSubjectInput } from '~/servic
 
 class SubjectController {
   async getAllSubject(req: Request, res: Response) {
-    console.log('Get subject controller', req?.user?.userId)
-    const data = await subjectService.getAllSubjectByUser("69183495fa6da2de813a9739")
+    const userId = req.user?.userId
+    // if (!userId) {
+    //   return sendResponse(res, {
+    //     code: 400,
+    //     message: "UserId is missing",
+    //     result: null
+    //   })
+    // }
+    const data = await subjectService.getAllSubjectByUser("69187f075de4316f17e5c791")
     sendResponse(res, {
       code: 200,
       message: 'Get subject successfully',
@@ -29,7 +36,14 @@ class SubjectController {
       name: req.body.name,
       color: req.body.color
     }
-    const userId = `69183495fa6da2de813a9739`
+    const userId = req.user?.userId
+    if (!userId) {
+      return sendResponse(res, {
+        code: 400,
+        message: "UserId is missing",
+        result: null
+      })
+    }
     const data = await subjectService.createSubject(userId, dto)
     sendResponse(res, {
       code: 200,

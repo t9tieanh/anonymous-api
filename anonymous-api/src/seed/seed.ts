@@ -1,8 +1,9 @@
+// src/seed/seed.ts
 import 'dotenv/config'
 import mongoose, { Types } from 'mongoose'
 import { UserModel } from '../models/user.model'
 import { SubjectModel } from '../models/subject.model'
-import { FileModel } from '../models/file.model'
+import { FileModel, IFile } from '../models/file.model'
 import { Quiz, IQuiz } from '../models/quiz.model'
 import { Question } from '../models/question.model'
 
@@ -18,21 +19,21 @@ async function seed() {
     })
     console.log('✅ Connected to MongoDB')
 
-    // Xoá toàn bộ dữ liệu cũ (tuỳ chọn)
+    // 🔄 Xoá toàn bộ dữ liệu cũ
     await UserModel.deleteMany({})
     await SubjectModel.deleteMany({})
     await FileModel.deleteMany({})
     await Quiz.deleteMany({})
     await Question.deleteMany({})
 
-    // 1️⃣ Tạo user demo
+    // 1️⃣ User demo
     const user = await UserModel.create({
       username: 'student01',
       email: 'student@example.com',
       name: 'Student Demo'
     })
 
-    // 2️⃣ Tạo subjects
+    // 2️⃣ Subjects demo
     const subjects = await SubjectModel.insertMany([
       {
         name: 'Toán cao cấp',
@@ -54,53 +55,69 @@ async function seed() {
       }
     ])
 
-    // 3️⃣ Tạo files
+    // 3️⃣ Files demo
     const files = await FileModel.insertMany([
       {
         name: 'Chương 1 - Giới thiệu.docx',
-        type: '.docx',
+        type: '.docx' as const,
         size: 200_000,
         storagePath: 'uploads/chapter1.docx',
         subjectId: subjects[0]._id,
-        status: 'ACTIVE'
+        status: 'ACTIVE' as const,
+        summary_content: 'Tóm tắt chương 1 môn Toán cao cấp',
+        summaryCount: 1,
+        quizCount: 1
       },
       {
         name: 'Bài tập Cấu trúc dữ liệu.pdf',
-        type: 'pdf',
+        type: '.pdf' as const, // ✅ enum đúng
         size: 350_000,
         storagePath: 'uploads/dsa_exercises.pdf',
         subjectId: subjects[1]._id,
-        status: 'ACTIVE'
+        status: 'ACTIVE' as const,
+        summaryCount: 0,
+        quizCount: 1
       },
       {
         name: 'Slide Web nâng cao.docx',
-        type: '.docx',
+        type: '.docx' as const,
         size: 280_000,
         storagePath: 'uploads/web_advanced.pptx',
         subjectId: subjects[2]._id,
-        status: 'ACTIVE'
+        status: 'ACTIVE' as const,
+        summaryCount: 0,
+        quizCount: 1
       },
       {
         name: 'Ôn tập Giai thừa.doc',
-        type: 'doc',
+        type: '.doc' as const,
         size: 100_000,
         storagePath: 'uploads/factorial.doc',
         subjectId: subjects[1]._id,
-        status: 'ACTIVE'
+        status: 'ACTIVE' as const,
+        summaryCount: 0,
+        quizCount: 0
       },
       {
         name: 'Tổng hợp kiến thức Web.pdf',
-        type: 'pdf',
+        type: '.pdf' as const,
         size: 320_000,
         storagePath: 'uploads/web_summary.pdf',
         subjectId: subjects[2]._id,
-        status: 'ACTIVE'
+        status: 'ACTIVE' as const,
+        summary_content: 'Tóm tắt kiến thức web nâng cao',
+        summaryCount: 1,
+        quizCount: 0
       }
     ])
 
-    // 4️⃣ Gắn children (danh sách file._id) vào Subject
+// Nếu muốn TS hiểu rõ type:
+const typedFiles = files as unknown as IFile[]
+
+
+    // 4️⃣ Gắn children vào Subject (danh sách file._id)
     for (const sub of subjects) {
-      const subjectId = sub._id as Types.ObjectId // 👈 ép kiểu, tránh 'unknown'
+      const subjectId = sub._id as Types.ObjectId
 
       const childrenFileIds = files
         .filter((f) => f.subjectId?.toString() === subjectId.toString())
@@ -113,8 +130,8 @@ async function seed() {
       })
     }
 
-    // 5️⃣ Tạo quiz (kiểu IQuiz để dùng type ở dưới)
-    const quizzes: IQuiz[] = await Quiz.insertMany([
+    // 5️⃣ Quizzes demo
+    const quizzes: IQuiz[] = await Quiz.insertMany<IQuiz>([
       {
         name: 'Quiz chương 1 Toán',
         fileId: files[0]._id,
@@ -133,9 +150,10 @@ async function seed() {
         level: 'hard',
         highestScore: 7
       }
-    ] as IQuiz[]) // 👈 cast cho chắc
+    ] as IQuiz[])
 
-    // 6️⃣ Hàm tạo question – thêm kiểu cho quiz & index
+
+    // 6️⃣ Helper tạo question
     const makeQuestion = (quiz: IQuiz, index: number) => ({
       name: `Câu ${index + 1}`,
       question: `Nội dung câu hỏi số ${index + 1} của quiz "${quiz.name}"?`,
@@ -161,4 +179,5 @@ async function seed() {
     process.exit(1)
   }
 }
+
 seed()

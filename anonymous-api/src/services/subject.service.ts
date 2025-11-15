@@ -1,5 +1,6 @@
 import mongoose, { Types } from 'mongoose'
 import { SubjectModel } from '~/models/subject.model'
+import { IFile } from '~/models/file.model'
 
 export interface SubjectStatsDTO {
   id: string
@@ -11,6 +12,13 @@ export interface SubjectStatsDTO {
     totalSummaries: number
     totalQuizzes: number
   }
+}
+export interface SubjectDetailDTO {
+  id: string
+  name: string
+  color: string
+  createdAt: Date
+  files: IFile[]
 }
 
 export interface CreateSubjectInput {
@@ -93,7 +101,7 @@ class SubjectService {
 
     return subjects
   }
-  async getSubjectById(subjectId: string): Promise<SubjectStatsDTO> {
+  async getSubjectById(subjectId: string): Promise<SubjectDetailDTO> {
     const subjects = await SubjectModel.aggregate([
       {
         $match: { _id: new mongoose.Types.ObjectId(subjectId) }
@@ -143,11 +151,7 @@ class SubjectService {
           name: 1,
           color: 1,
           createdAt: 1,
-          stats: {
-            totalFiles: '$totalFiles',
-            totalSummaries: '$totalSummaries',
-            totalQuizzes: '$totalQuizzes'
-          }
+          files: '$files'
         }
       }
     ])
