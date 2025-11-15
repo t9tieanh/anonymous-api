@@ -22,8 +22,7 @@ class AuthController {
         result: result
       })
     } catch (err: any) {
-      console.log(err)
-      throw new ApiError(StatusCodes.BAD_REQUEST, 'Đăng nhập Google thất bại !, vui lòng thử lại')
+      throw new ApiError(StatusCodes.BAD_REQUEST, err.message || 'Đăng nhập Google thất bại !, vui lòng thử lại')
     }
   }
 }

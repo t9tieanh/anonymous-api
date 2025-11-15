@@ -67,6 +67,15 @@ const loginGoogle = async ({ code }: { code: string }) => {
     access_token
   })
 
+  // chỉ cho phép email sinh viên của HCMUTE
+  if (
+    !userData.email ||
+    typeof userData.email !== 'string' ||
+    !userData.email.toLowerCase().endsWith('@student.hcmute.edu.vn')
+  ) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Chỉ cho phép email có đuôi @student.hcmute.edu.vn')
+  }
+
   // tìm kiếm user xem user này đã được onboard vào hệ thống chưa
   let user = await UserModel.findOne({ email: userData.email })
 
