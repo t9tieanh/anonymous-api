@@ -1,9 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { StatusCodes } from 'http-status-codes'
 import { FileModel, IFile } from '~/models/file.model'
 import { SubjectModel } from '~/models/subject.model'
 import { Quiz } from '~/models/quiz.model'
 import ApiError from '~/middleware/ApiError'
-import { uploadToCloudinary, deleteFromCloudinary, formatFileSize } from '~/utils/cloudinaryUtil'
 import { uploadToCloudinary, deleteFromCloudinary, formatFileSize } from '~/utils/cloudinaryUtil'
 import path from 'path'
 import { Types } from 'mongoose'
@@ -139,12 +139,7 @@ class FileService {
     const fileExtension = path.extname(file.originalname).toLowerCase()
 
     // Upload file lên Cloudinary với tên file gốc để giữ extension
-    const uploadResult = await uploadToCloudinary(
-      file.buffer,
-      file.originalname,
-      'hackathon-files',
-      uploadPreset
-    )
+    const uploadResult = await uploadToCloudinary(file.buffer, file.originalname, 'hackathon-files', uploadPreset)
 
     // Tạo file record trong database
     const newFile = await FileModel.create({
@@ -285,7 +280,6 @@ class FileService {
       mimeType: file.mimeType || 'application/octet-stream',
       summaryCount: file.summaryCount || 0,
       quizCount: quizCount,
-      url: file.cloudinaryUrl || '',
       url: file.cloudinaryUrl || '',
       metadata: {
         // TODO: Có thể thêm metadata khác nếu cần
