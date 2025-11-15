@@ -13,6 +13,7 @@ export interface IQuestion extends Document {
   quizId: Types.ObjectId
   answers: IAnswer[]
   userAnswer?: number | null
+  explanation: string
 }
 
 const answerSchema = new Schema<IAnswer>(
@@ -62,6 +63,11 @@ const questionSchema = new Schema<IQuestion>(
       type: Number,
       required: false,
       default: null
+    },
+    explanation: {
+      type: String,
+      required: false,
+      trim: true
     }
   },
   {
