@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model, Types } from 'mongoose'
+import mongoose, { Schema, Document, Model } from 'mongoose'
 import validator from 'validator'
 
 // Define the interface for the User document -> kiểu trả về cho các document trong MongoDB
