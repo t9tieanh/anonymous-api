@@ -5,11 +5,11 @@ export type FileType = 'file' | 'folder'
 export interface IFile extends Document {
   name: string
   type: FileType
-  storagePath?: string | null // null nếu là folder
+  storagePath?: string | null
   parentId?: Types.ObjectId | null
-  children: Types.ObjectId[] // danh sách file/folder con
+  children: Types.ObjectId[]
   summary_content?: string
-  userId: Types.ObjectId // owner
+  userId: Types.ObjectId
 }
 
 const fileSchema = new Schema<IFile>(
