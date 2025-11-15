@@ -3,8 +3,15 @@ import { UserModel } from '../../models/user.model'
 import { FileModel } from '../../models/file.model'
 import { Quiz } from '../../models/quiz.model'
 import { Question } from '../../models/question.model'
+import subjectController from '~/controllers/subject.controller'
+import authen from '~/middleware/authen.middleware'
 
 const router = Router()
+
+router.use(authen)
+router.get('/subjects', subjectController.getSubject)
+router.post('/subjects', subjectController.createSubject)
+
 
 /**
  * GET /debug/users → xem danh sách user
