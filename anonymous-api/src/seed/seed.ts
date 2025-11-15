@@ -73,8 +73,7 @@ async function seed() {
       storagePath: 'uploads/oop/OOP_Chapter1.pdf', // ví dụ, tùy bạn
       parentId: rootFolder._id,
       children: [],
-      summary_content:
-        'Chương 1: Giới thiệu về lập trình hướng đối tượng, class, object, thuộc tính, phương thức.',
+      summary_content: 'Chương 1: Giới thiệu về lập trình hướng đối tượng, class, object, thuộc tính, phương thức.',
       userId: user._id
     })
     console.log('✅ Created file:', oopFile._id)
@@ -97,8 +96,7 @@ async function seed() {
     quiz = await Quiz.create({
       name: 'Quiz OOP Chương 1',
       fileId: oopFile._id,
-      content:
-        'Bộ câu hỏi trắc nghiệm kiểm tra kiến thức cơ bản về lập trình hướng đối tượng chương 1.',
+      content: 'Bộ câu hỏi trắc nghiệm kiểm tra kiến thức cơ bản về lập trình hướng đối tượng chương 1.',
       level: 'ez',
       highestScore: 8 // ví dụ
     })
@@ -124,8 +122,7 @@ async function seed() {
             isCorrect: false
           },
           {
-            content:
-              'Là một thực thể cụ thể được tạo ra từ class, có trạng thái và hành vi.',
+            content: 'Là một thực thể cụ thể được tạo ra từ class, có trạng thái và hành vi.',
             isCorrect: true
           },
           {
@@ -163,8 +160,7 @@ async function seed() {
       },
       {
         name: 'Câu 3',
-        question:
-          'Thuộc tính (attribute/field) của một đối tượng dùng để biểu diễn điều gì?',
+        question: 'Thuộc tính (attribute/field) của một đối tượng dùng để biểu diễn điều gì?',
         quizId: quiz._id,
         answers: [
           {

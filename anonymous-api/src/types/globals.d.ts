@@ -1,5 +1,5 @@
 // src/global.d.ts
-export { }
+export {}
 
 declare global {
   interface GlobalThis {
@@ -7,4 +7,4 @@ declare global {
   }
 }
 
-declare module 'docx-parser';
+declare module 'docx-parser'
