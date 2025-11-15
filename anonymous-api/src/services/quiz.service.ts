@@ -115,13 +115,13 @@ export const createQuiz = async (fileId: string, numQuestions: number, difficult
 
     try {
       Question.insertMany(questionDocs)
-      .then(result => {
-        const ids = result.map(doc => doc._id)
-        console.log('✔ Insert thành công!', ids)
-      })
-      .catch(err => {
-        console.error('❌ Insert thất bại!', err)
-      })
+        .then(result => {
+          const ids = result.map(doc => doc._id)
+          console.log('✔ Insert thành công!', ids)
+        })
+        .catch(err => {
+          console.error('❌ Insert thất bại!', err)
+        })
 
     } catch (e) {
       console.error('Failed to insert question docs', e)
