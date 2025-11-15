@@ -12,7 +12,7 @@ class SubjectController {
     //     result: null
     //   })
     // }
-    const data = await subjectService.getAllSubjectByUser("69187f075de4316f17e5c791")
+    const data = await subjectService.getAllSubjectByUser("6918900585f9b3a669345cc7")
     sendResponse(res, {
       code: 200,
       message: 'Get subject successfully',
