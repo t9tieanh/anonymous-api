@@ -13,7 +13,6 @@ class SubjectController {
       })
     }
 
-    console.log('USERID', userId)
     const data = await subjectService.getAllSubjectByUser(userId)
     console.log("data", data)
     sendResponse(res, {
