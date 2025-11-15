@@ -28,6 +28,13 @@ fileRoutes.get('/subjects/:subjectId/files', authenticate, fileController.getFil
 fileRoutes.post('', authenticate, uploadFile.single('file'), fileController.uploadFile)
 
 /**
+ * @route   POST /files/:fileId/import-questions
+ * @desc    Import questions JSON and persist as a Quiz + Questions
+ * @access  Private
+ */
+fileRoutes.post('/:fileId/import-questions', authenticate, fileController.importQuestions)
+
+/**
  * @route   GET /files/:fileId
  * @desc    Lấy thông tin chi tiết của một file
  * @access  Private (cần authentication)

@@ -2,6 +2,8 @@
 import axios from 'axios'
 import ApiError from '~/middleware/ApiError'
 import { FileModel } from '~/models/file.model'
+import { Quiz } from '~/models/quiz.model'
+import { Question } from '~/models/question.model'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -30,7 +32,7 @@ const getFile = async (url: string): Promise<{ path: string; mimetype?: string }
   if (!url) throw new Error('No file URL provided')
   const res = await axios.get(url, { responseType: 'stream' })
   const contentType = res.headers['content-type'] as string | undefined
-  const ext = contentType ? (contentType.split('/')[1] || '') : ''
+  const ext = contentType ? contentType.split('/')[1] || '' : ''
   const tmpName = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext ? `.${ext.split(';')[0]}` : ''}`
   const dest = path.join(os.tmpdir(), tmpName)
   await pipeline(res.data as stream.Readable, fs.createWriteStream(dest))
@@ -39,17 +41,52 @@ const getFile = async (url: string): Promise<{ path: string; mimetype?: string }
 
 export const createQuiz = async (fileId: string, numQuestions: number, difficulty: string): Promise<QuizQuestion[]> => {
   const currentFile = await FileModel.findById(fileId)
-  if (!currentFile)
-    throw new ApiError(404, 'File not found')
+  if (!currentFile) throw new ApiError(404, 'File not found')
 
   const { path: localPath, mimetype } = await getFile(currentFile.cloudinaryUrl as string)
   try {
     const text = await extractTextFromFile(localPath, mimetype || '')
     const questions = await generateQuiz({ text, apiKey: process.env.GEMINI_API_KEY || '', numQuestions, difficulty })
 
-    // optional: persist generated quiz back to file doc if desired
-    // currentFile.generatedQuiz = questions
-    // await currentFile.save()
+    // persist generated quiz and questions to database
+    const mapDifficultyToLevel = (d: string) => {
+      if (!d) return 'ez' as const
+      const s = d.toLowerCase()
+      if (s.includes('easy') || s.includes('ez') || s.includes('dễ')) return 'ez' as const
+      if (s.includes('medium') || s.includes('md') || s.includes('trung')) return 'md' as const
+      return 'hard' as const
+    }
+
+    const level = mapDifficultyToLevel(difficulty)
+    const quizName = `${currentFile.name || 'Quiz'} - ${new Date().toISOString()}`
+
+    const createdQuiz = await Quiz.create({ name: quizName, fileId: currentFile._id, level })
+
+    const questionDocs = questions.map((q, idx) => {
+      const answers = [
+        { content: q.options.A, isCorrect: q.answer === 'A' },
+        { content: q.options.B, isCorrect: q.answer === 'B' },
+        { content: q.options.C, isCorrect: q.answer === 'C' },
+        { content: q.options.D, isCorrect: q.answer === 'D' }
+      ]
+      return {
+        name: `Câu ${idx + 1}`,
+        question: q.question,
+        quizId: createdQuiz._id,
+        answers
+      }
+    })
+
+    await Question.insertMany(questionDocs)
+
+    // increment quizCount on file
+    try {
+      currentFile.quizCount = (currentFile.quizCount || 0) + 1
+      await currentFile.save()
+    } catch (e) {
+      // non-fatal
+      console.warn('Failed to update file quizCount', e)
+    }
 
     return questions
   } finally {

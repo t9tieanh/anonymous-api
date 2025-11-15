@@ -179,6 +179,69 @@ class FileController {
   }
 
   /**
+   * POST /files/:fileId/import-questions
+   * Import an array of questions (from request body) and persist as a new Quiz + Questions
+   */
+  async importQuestions(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user?.userId
+      const { fileId } = req.params
+
+      if (!userId) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, 'Bạn cần đăng nhập để thực hiện thao tác này')
+      }
+
+      const payload = req.body?.questions ?? req.body
+      if (!Array.isArray(payload) || payload.length === 0) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Payload questions không hợp lệ')
+      }
+
+      // optional name and level
+      const quizName = (req.body?.name as string) || `Imported Quiz - ${new Date().toISOString()}`
+      const level = (req.body?.level as string) || 'ez'
+
+      // create quiz
+      const createdQuiz = await Quiz.create({ name: quizName, fileId, level })
+
+      const arr = payload as Array<Record<string, unknown>>
+      const questionDocs = arr.map((q, idx: number) => {
+        const opts = (q.options ?? {}) as Record<string, unknown>
+        const getOpt = (k: string) => String(opts[k] ?? '')
+        const answerRaw = String(q.answer ?? '').toUpperCase()
+        const answers = [
+          { content: getOpt('A'), isCorrect: answerRaw === 'A' },
+          { content: getOpt('B'), isCorrect: answerRaw === 'B' },
+          { content: getOpt('C'), isCorrect: answerRaw === 'C' },
+          { content: getOpt('D'), isCorrect: answerRaw === 'D' }
+        ]
+        return {
+          name: `Câu ${idx + 1}`,
+          question: String(q.question ?? ''),
+          quizId: createdQuiz._id,
+          answers
+        }
+      })
+
+      await Question.insertMany(questionDocs)
+
+      // increment quizCount on file
+      try {
+        await FileModel.findByIdAndUpdate(fileId, { $inc: { quizCount: 1 } })
+      } catch (e) {
+        console.warn('Failed to update file quizCount', e)
+      }
+
+      sendResponse(res, {
+        code: StatusCodes.CREATED,
+        message: 'Imported questions successfully',
+        result: { quizId: (createdQuiz._id as unknown as import('mongoose').Types.ObjectId).toString() }
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  /**
    * DELETE /files/:fileId
    * Xóa file (soft delete)
    */

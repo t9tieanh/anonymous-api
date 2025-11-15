@@ -63,7 +63,7 @@ const fileSchema = new Schema<IFile>(
       ref: 'Subject',
       default: null
     },
-    summary_content: {
+    summaryContent: {
       type: String
     },
     summaryCount: {
