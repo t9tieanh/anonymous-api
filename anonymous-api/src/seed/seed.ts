@@ -1,199 +1,183 @@
 // src/seed/seed.ts
-import 'dotenv/config' // đảm bảo load biến môi trường
-import mongoose from 'mongoose'
-import { env } from '../config/env' // dùng chung env như CONNECT_DB
+import 'dotenv/config'
+import mongoose, { Types } from 'mongoose'
 import { UserModel } from '../models/user.model'
-import { FileModel } from '../models/file.model'
-import { Quiz } from '../models/quiz.model'
+import { SubjectModel } from '../models/subject.model'
+import { FileModel, IFile } from '../models/file.model'
+import { Quiz, IQuiz } from '../models/quiz.model'
 import { Question } from '../models/question.model'
 
 async function seed() {
-  // 0️⃣ Kết nối DB: dùng MONGODB_URI + DATABASE_NAME giống CONNECT_DB
-  if (!env.MONGODB_URI) {
-    console.error('❌ env.MONGODB_URI is missing')
+  try {
+    if (!process.env.MONGODB_URI) {
+      console.error('❌ Missing MONGODB_URI')
+      process.exit(1)
+    }
+
+    await mongoose.connect(process.env.MONGODB_URI, {
+      dbName: process.env.DATABASE_NAME
+    })
+    console.log('✅ Connected to MongoDB')
+
+    // 🔄 Xoá toàn bộ dữ liệu cũ
+    await UserModel.deleteMany({})
+    await SubjectModel.deleteMany({})
+    await FileModel.deleteMany({})
+    await Quiz.deleteMany({})
+    await Question.deleteMany({})
+
+    // 1️⃣ User demo
+    const user = await UserModel.create({
+      username: 'student01',
+      email: 'student@example.com',
+      name: 'Student Demo'
+    })
+
+    // 2️⃣ Subjects demo
+    const subjects = await SubjectModel.insertMany([
+      {
+        name: 'Toán cao cấp',
+        color: '#ff6b6b',
+        userId: user._id,
+        children: []
+      },
+      {
+        name: 'Cấu trúc dữ liệu & giải thuật',
+        color: '#4dabf7',
+        userId: user._id,
+        children: []
+      },
+      {
+        name: 'Lập trình Web nâng cao',
+        color: '#51cf66',
+        userId: user._id,
+        children: []
+      }
+    ])
+
+    // 3️⃣ Files demo
+    const files = await FileModel.insertMany([
+      {
+        name: 'Chương 1 - Giới thiệu.docx',
+        type: '.docx' as const,
+        size: 200_000,
+        storagePath: 'uploads/chapter1.docx',
+        subjectId: subjects[0]._id,
+        status: 'ACTIVE' as const,
+        summary_content: 'Tóm tắt chương 1 môn Toán cao cấp',
+        summaryCount: 1,
+        quizCount: 1
+      },
+      {
+        name: 'Bài tập Cấu trúc dữ liệu.pdf',
+        type: '.pdf' as const, // ✅ enum đúng
+        size: 350_000,
+        storagePath: 'uploads/dsa_exercises.pdf',
+        subjectId: subjects[1]._id,
+        status: 'ACTIVE' as const,
+        summaryCount: 0,
+        quizCount: 1
+      },
+      {
+        name: 'Slide Web nâng cao.docx',
+        type: '.docx' as const,
+        size: 280_000,
+        storagePath: 'uploads/web_advanced.pptx',
+        subjectId: subjects[2]._id,
+        status: 'ACTIVE' as const,
+        summaryCount: 0,
+        quizCount: 1
+      },
+      {
+        name: 'Ôn tập Giai thừa.doc',
+        type: '.doc' as const,
+        size: 100_000,
+        storagePath: 'uploads/factorial.doc',
+        subjectId: subjects[1]._id,
+        status: 'ACTIVE' as const,
+        summaryCount: 0,
+        quizCount: 0
+      },
+      {
+        name: 'Tổng hợp kiến thức Web.pdf',
+        type: '.pdf' as const,
+        size: 320_000,
+        storagePath: 'uploads/web_summary.pdf',
+        subjectId: subjects[2]._id,
+        status: 'ACTIVE' as const,
+        summary_content: 'Tóm tắt kiến thức web nâng cao',
+        summaryCount: 1,
+        quizCount: 0
+      }
+    ])
+
+// Nếu muốn TS hiểu rõ type:
+const typedFiles = files as unknown as IFile[]
+
+
+    // 4️⃣ Gắn children vào Subject (danh sách file._id)
+    for (const sub of subjects) {
+      const subjectId = sub._id as Types.ObjectId
+
+      const childrenFileIds = files
+        .filter((f) => f.subjectId?.toString() === subjectId.toString())
+        .map((f) => f._id as Types.ObjectId)
+
+      await SubjectModel.findByIdAndUpdate(subjectId, {
+        $set: {
+          children: childrenFileIds
+        }
+      })
+    }
+
+    // 5️⃣ Quizzes demo
+    const quizzes: IQuiz[] = await Quiz.insertMany<IQuiz>([
+      {
+        name: 'Quiz chương 1 Toán',
+        fileId: files[0]._id,
+        level: 'ez',
+        highestScore: 8
+      },
+      {
+        name: 'Quiz CTDL nâng cao',
+        fileId: files[1]._id,
+        level: 'md',
+        highestScore: 6
+      },
+      {
+        name: 'Quiz Web nâng cao',
+        fileId: files[2]._id,
+        level: 'hard',
+        highestScore: 7
+      }
+    ] as IQuiz[])
+
+
+    // 6️⃣ Helper tạo question
+    const makeQuestion = (quiz: IQuiz, index: number) => ({
+      name: `Câu ${index + 1}`,
+      question: `Nội dung câu hỏi số ${index + 1} của quiz "${quiz.name}"?`,
+      quizId: quiz._id as Types.ObjectId,
+      answers: [
+        { content: 'Đáp án A', isCorrect: index % 4 === 0 },
+        { content: 'Đáp án B', isCorrect: index % 4 === 1 },
+        { content: 'Đáp án C', isCorrect: index % 4 === 2 },
+        { content: 'Đáp án D', isCorrect: index % 4 === 3 }
+      ]
+    })
+
+    // 7️⃣ Tạo 5 câu hỏi cho mỗi quiz
+    for (const quiz of quizzes) {
+      const qs = Array.from({ length: 5 }, (_, i) => makeQuestion(quiz, i))
+      await Question.insertMany(qs)
+    }
+
+    console.log('🎉 DONE: Seed thành công!')
+    process.exit(0)
+  } catch (error) {
+    console.error('❌ Seed error:', error)
     process.exit(1)
   }
-
-  console.log('🚀 Seed connecting to:', env.MONGODB_URI, 'db =', env.DATABASE_NAME)
-
-  await mongoose.connect(env.MONGODB_URI, {
-    dbName: env.DATABASE_NAME
-  })
-  console.log('✅ Connected to MongoDB for seeding')
-
-  // 1️⃣ Tạo user demo (nếu chưa có)
-  const email = 'student1@example.com'
-
-  let user = await UserModel.findOne({ email })
-  if (!user) {
-    user = await UserModel.create({
-      name: 'Student One',
-      email,
-      createdAt: new Date()
-    })
-    console.log('✅ Created user:', user._id)
-  } else {
-    console.log('ℹ️ User already exists:', user._id)
-  }
-
-  // 2️⃣ Tạo folder gốc & file demo gắn với user
-  // 2.1 Folder
-  let rootFolder = await FileModel.findOne({
-    name: 'My Documents',
-    userId: user._id,
-    type: 'folder'
-  })
-
-  if (!rootFolder) {
-    rootFolder = await FileModel.create({
-      name: 'My Documents',
-      type: 'folder',
-      storagePath: null,
-      parentId: null,
-      children: [],
-      summary_content: 'Thư mục gốc chứa tài liệu học tập của sinh viên.',
-      userId: user._id
-    })
-    console.log('✅ Created root folder:', rootFolder._id)
-  } else {
-    console.log('ℹ️ Root folder already exists:', rootFolder._id)
-  }
-
-  // 2.2 File trong folder
-  let oopFile = await FileModel.findOne({
-    name: 'OOP_Chapter1.pdf',
-    userId: user._id,
-    type: 'file'
-  })
-
-  if (!oopFile) {
-    oopFile = await FileModel.create({
-      name: 'OOP_Chapter1.pdf',
-      type: 'file',
-      storagePath: 'uploads/oop/OOP_Chapter1.pdf', // ví dụ, tùy bạn
-      parentId: rootFolder._id,
-      children: [],
-      summary_content: 'Chương 1: Giới thiệu về lập trình hướng đối tượng, class, object, thuộc tính, phương thức.',
-      userId: user._id
-    })
-    console.log('✅ Created file:', oopFile._id)
-
-    // thêm vào children của folder
-    rootFolder.children.push(oopFile._id as any)
-    await rootFolder.save()
-    console.log('✅ Updated root folder children')
-  } else {
-    console.log('ℹ️ File already exists:', oopFile._id)
-  }
-
-  // 3️⃣ Tạo quiz cho file OOP_Chapter1
-  let quiz = await Quiz.findOne({
-    name: 'Quiz OOP Chương 1',
-    fileId: oopFile._id
-  })
-
-  if (!quiz) {
-    quiz = await Quiz.create({
-      name: 'Quiz OOP Chương 1',
-      fileId: oopFile._id,
-      content: 'Bộ câu hỏi trắc nghiệm kiểm tra kiến thức cơ bản về lập trình hướng đối tượng chương 1.',
-      level: 'ez',
-      highestScore: 8 // ví dụ
-    })
-    console.log('✅ Created quiz:', quiz._id)
-  } else {
-    console.log('ℹ️ Quiz already exists:', quiz._id)
-  }
-
-  // 4️⃣ Seed câu hỏi + đáp án (embedded)
-  const existingQuestions = await Question.countDocuments({
-    quizId: quiz._id
-  })
-
-  if (existingQuestions === 0) {
-    const questionsData = [
-      {
-        name: 'Câu 1',
-        question: 'Đối tượng (object) trong OOP là gì?',
-        quizId: quiz._id,
-        answers: [
-          {
-            content: 'Là một biến toàn cục trong chương trình.',
-            isCorrect: false
-          },
-          {
-            content: 'Là một thực thể cụ thể được tạo ra từ class, có trạng thái và hành vi.',
-            isCorrect: true
-          },
-          {
-            content: 'Là một hàm dùng để xử lý dữ liệu.',
-            isCorrect: false
-          },
-          {
-            content: 'Là một kiểu dữ liệu nguyên thủy.',
-            isCorrect: false
-          }
-        ]
-      },
-      {
-        name: 'Câu 2',
-        question: 'Class trong lập trình hướng đối tượng được hiểu là:',
-        quizId: quiz._id,
-        answers: [
-          {
-            content: 'Một đối tượng cụ thể trong bộ nhớ.',
-            isCorrect: false
-          },
-          {
-            content: 'Một khuôn mẫu (template) để tạo ra các đối tượng cùng loại.',
-            isCorrect: true
-          },
-          {
-            content: 'Một hằng số dùng chung cho mọi đối tượng.',
-            isCorrect: false
-          },
-          {
-            content: 'Một module chứa hàm main của chương trình.',
-            isCorrect: false
-          }
-        ]
-      },
-      {
-        name: 'Câu 3',
-        question: 'Thuộc tính (attribute/field) của một đối tượng dùng để biểu diễn điều gì?',
-        quizId: quiz._id,
-        answers: [
-          {
-            content: 'Hành động mà đối tượng có thể thực hiện.',
-            isCorrect: false
-          },
-          {
-            content: 'Dữ liệu mô tả trạng thái của đối tượng.',
-            isCorrect: true
-          },
-          {
-            content: 'Tên của class chứa đối tượng đó.',
-            isCorrect: false
-          },
-          {
-            content: 'Loại dữ liệu của biến cục bộ.',
-            isCorrect: false
-          }
-        ]
-      }
-    ]
-
-    const insertedQuestions = await Question.insertMany(questionsData)
-    console.log('✅ Inserted questions:', insertedQuestions.length)
-  } else {
-    console.log('ℹ️ Questions already seeded for this quiz')
-  }
-
-  await mongoose.disconnect()
-  console.log('✅ Seed done & disconnected')
 }
 
-seed().catch((err) => {
-  console.error('❌ Seed error:', err)
-  mongoose.disconnect()
-})
+seed()
