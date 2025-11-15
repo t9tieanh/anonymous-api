@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios'
 import ApiError from '~/middleware/ApiError'
@@ -10,6 +11,9 @@ import path from 'path'
 import stream from 'stream'
 import { promisify } from 'util'
 import { extractTextFromFile } from '~/utils/fileParser'
+import { Quiz, IQuiz } from '../models/quiz.model'
+import { Types } from 'mongoose'
+import { Question, IQuestion } from '~/models/question.model'
 
 export type QuizOptionKey = 'A' | 'B' | 'C' | 'D'
 
@@ -24,6 +28,36 @@ export interface GenerateQuizParams {
   apiKey: string
   numQuestions: number
   difficulty: string // e.g. easy|medium|hard or Vietnamese labels
+}
+
+export interface SubmitAnswer {
+  questionId: string
+  selectedAnswer: number // Index của answer được chọn (0, 1, 2, 3)
+}
+
+export interface SubmitQuizRequest {
+  answers: SubmitAnswer[]
+  timeSpent?: string
+}
+
+export interface SubmitQuizResult {
+  score: number // Điểm từ 0-10
+  totalQuestions: number
+  correctAnswers: number
+  incorrectAnswers: number
+  questionResults: Array<{
+    questionId: string
+    isCorrect: boolean
+    selectedAnswerIndex: number
+    correctAnswerIndex: number
+    correctAnswer: {
+      _id: string
+      content: string
+      explain: string
+    }
+  }>
+  timeSpent?: string
+  isNewRecord: boolean // Có phải điểm cao nhất mới không
 }
 
 const pipeline = promisify(stream.pipeline)
@@ -224,4 +258,199 @@ const normalizeQuestion = (q: any): QuizQuestion | null => {
   const isValid = question && A && B && C && D && ['A', 'B', 'C', 'D'].includes(answer)
   if (!isValid) return null
   return { question, options: { A, B, C, D }, answer: answer as QuizOptionKey }
+}
+
+export const getQuizByIdService = async (quizId: string): Promise<IQuiz | null> => {
+  if (!Types.ObjectId.isValid(quizId)) {
+    throw new Error('Invalid quizId format')
+  }
+
+  const quiz = await Quiz.findById(quizId).lean()
+  return quiz as IQuiz | null
+}
+
+export const getAllQuizByFileId = async (fileId: string): Promise<IQuiz[]> => {
+  // Validate fileId is a valid ObjectId
+  if (!Types.ObjectId.isValid(fileId)) {
+    throw new Error('Invalid fileId format')
+  }
+
+  const quizzes = await Quiz.find({ fileId: new Types.ObjectId(fileId) })
+    .sort({ createdAt: -1 }) // Sort by newest first
+    .lean()
+
+  return quizzes as IQuiz[]
+}
+
+export const getAllQuizzes = async (userId: string): Promise<IQuiz[]> => {
+  // Validate và convert userId sang ObjectId
+  if (!Types.ObjectId.isValid(userId)) {
+    throw new Error('Invalid userId format')
+  }
+
+  const userObjectId = new Types.ObjectId(userId)
+
+  const quizzes = await Quiz.aggregate([
+    // join File
+    {
+      $lookup: {
+        from: 'files',
+        localField: 'fileId',
+        foreignField: '_id',
+        as: 'file'
+      }
+    },
+    { $unwind: '$file' },
+
+    // join Subject
+    {
+      $lookup: {
+        from: 'subjects',
+        localField: 'file.subjectId',
+        foreignField: '_id',
+        as: 'subject'
+      }
+    },
+    { $unwind: '$subject' },
+
+    // filter userId - so sánh ObjectId với ObjectId
+    {
+      $match: {
+        'subject.userId': userObjectId
+      }
+    },
+
+    // clean up output
+    {
+      $project: {
+        file: 0,
+        subject: 0
+      }
+    }
+  ])
+
+  return quizzes
+}
+
+export const getAllQuestionByQuiz = async (quizId: string): Promise<IQuestion[]> => {
+  if (!Types.ObjectId.isValid(quizId)) {
+    throw new Error('Invalid quizId format')
+  }
+
+  const objectId = new Types.ObjectId(quizId)
+
+  const questions: IQuestion[] = await Question.find({ quizId: objectId }).lean()
+
+  // Đảm bảo luôn trả về array, không bao giờ undefined hoặc null
+  return questions || []
+}
+
+export const submitQuiz = async (quizId: string, submitData: SubmitQuizRequest): Promise<SubmitQuizResult> => {
+  if (!Types.ObjectId.isValid(quizId)) {
+    throw new Error('Invalid quizId format')
+  }
+
+  // Lấy tất cả questions của quiz
+  const questions = await getAllQuestionByQuiz(quizId)
+
+  if (questions.length === 0) {
+    throw new Error('Quiz not found or has no questions')
+  }
+
+  // Tạo map để dễ tìm question theo ID
+  const questionMap = new Map<string, IQuestion>()
+  questions.forEach((q) => {
+    questionMap.set(String(q._id), q)
+  })
+
+  // Tính điểm
+  let correctAnswers = 0
+  const questionResults: SubmitQuizResult['questionResults'] = []
+
+  for (const answer of submitData.answers) {
+    const question = questionMap.get(answer.questionId)
+
+    if (!question) {
+      // Nếu không tìm thấy question, coi như sai
+      questionResults.push({
+        questionId: answer.questionId,
+        isCorrect: false,
+        selectedAnswerIndex: answer.selectedAnswer,
+        correctAnswerIndex: -1,
+        correctAnswer: {
+          _id: '',
+          content: 'Question not found',
+          explain: ''
+        }
+      })
+      continue
+    }
+
+    // Cập nhật userAnswer trong question model (ghi đè câu trả lời cũ)
+    await Question.findByIdAndUpdate(answer.questionId, {
+      userAnswer: answer.selectedAnswer
+    })
+
+    // Tìm index của answer đúng
+    const correctAnswerIndex = question.answers.findIndex((ans) => ans.isCorrect === true)
+    const isCorrect = correctAnswerIndex === answer.selectedAnswer
+
+    if (isCorrect) {
+      correctAnswers++
+    }
+
+    // Lấy thông tin answer đúng
+    const correctAnswer = question.answers[correctAnswerIndex] || {
+      _id: '',
+      content: '',
+      explain: ''
+    }
+
+    questionResults.push({
+      questionId: answer.questionId,
+      isCorrect,
+      selectedAnswerIndex: answer.selectedAnswer,
+      correctAnswerIndex,
+      correctAnswer: {
+        _id: String(correctAnswer._id || ''),
+        content: correctAnswer.content || '',
+        explain: correctAnswer.explain || ''
+      }
+    })
+  }
+
+  // Tính điểm: (số câu đúng / tổng số câu) * 10
+  const totalQuestions = questions.length
+  const score = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 10 : 0
+  const incorrectAnswers = totalQuestions - correctAnswers
+
+  // Làm tròn điểm đến 2 chữ số thập phân
+  const roundedScore = Math.round(score * 100) / 10
+
+  // Cập nhật highestScore nếu điểm mới cao hơn và tăng attemptCount
+  const quiz = await Quiz.findById(quizId)
+  let isNewRecord = false
+
+  if (quiz) {
+    // Tăng số lần làm bài
+    quiz.attemptCount = (quiz.attemptCount || 0) + 1
+
+    // Cập nhật điểm cao nhất nếu điểm mới cao hơn
+    if (roundedScore > quiz.highestScore) {
+      quiz.highestScore = roundedScore
+      isNewRecord = true
+    }
+
+    await quiz.save()
+  }
+
+  return {
+    score: roundedScore,
+    totalQuestions,
+    correctAnswers,
+    incorrectAnswers,
+    questionResults,
+    timeSpent: submitData.timeSpent,
+    isNewRecord
+  }
 }

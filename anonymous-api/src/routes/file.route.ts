@@ -2,16 +2,10 @@ import express, { Router } from 'express'
 import fileController from '~/controllers/file.controller'
 import authenticate from '~/middleware/authen.middleware'
 import { uploadFile } from '~/utils/cloudinaryUtil'
+import { getAllQuestionByQuiz, getQuizByFileId, getQuizById, submitQuizAnswers } from '~/controllers/quiz.controller'
 
 const fileRoutes: Router = express.Router()
 
-/**
- * @route   GET /subjects/:subjectId/files
- * @desc    Lấy danh sách files theo subject với phân trang
- * @access  Private (cần authentication)
- * @query   page (optional) - Số trang (default: 1)
- *          limit (optional) - Số items mỗi trang (default: 20)
- */
 fileRoutes.get('/subjects/:subjectId/files', authenticate, fileController.getFilesBySubject)
 
 /**
@@ -41,11 +35,14 @@ fileRoutes.post('/:fileId/import-questions', authenticate, fileController.import
  */
 fileRoutes.get('/files/:fileId', authenticate, fileController.getFileById)
 
-/**
- * @route   DELETE /files/:fileId
- * @desc    Xóa file (soft delete) và tất cả summaries/quizzes liên quan
- * @access  Private (cần authentication)
- */
-fileRoutes.delete('/files/:fileId', authenticate, fileController.deleteFile)
+fileRoutes.delete('/:fileId', authenticate, fileController.deleteFile)
+
+fileRoutes.get('/:fileId/quizzes', authenticate, getQuizByFileId)
+
+fileRoutes.get('/quizzes/:quizId/questions', authenticate, getAllQuestionByQuiz)
+
+fileRoutes.get('/quizzes/:quizId', authenticate, getQuizById)
+
+fileRoutes.post('/quizzes/:quizId/submit', authenticate, submitQuizAnswers)
 
 export default fileRoutes

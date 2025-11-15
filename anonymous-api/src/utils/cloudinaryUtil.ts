@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { StatusCodes } from 'http-status-codes'
 import multer, { FileFilterCallback } from 'multer'
 import ApiError from '~/middleware/ApiError'
@@ -65,26 +66,23 @@ export const uploadToCloudinary = (
     if (uploadPreset) {
       // Khi dùng unsigned upload preset, KHÔNG set public_id để tránh xung đột với
       // các rule như use_filename/unique_filename/folder do preset định nghĩa.
-      ; (options as any).upload_preset = uploadPreset
+      ;(options as any).upload_preset = uploadPreset
       // Truyền tên file gốc để preset (với Use filename = true) lấy đúng tên
       const safeOriginal = `${filenameWithoutExt}${ext}`
-        ; (options as any).filename_override = safeOriginal
+      ;(options as any).filename_override = safeOriginal
     } else {
       // Không dùng preset -> kiểm soát đầy đủ public_id và access_mode
-      ; (options as any).public_id = publicId
-        ; (options as any).access_mode = 'public'
+      ;(options as any).public_id = publicId
+      ;(options as any).access_mode = 'public'
     }
 
-    const uploadStream = cloudinary.uploader.upload_stream(
-      options,
-      (error, result) => {
-        if (error || !result) {
-          reject(error || new Error('Upload failed'))
-        } else {
-          resolve(result)
-        }
+    const uploadStream = cloudinary.uploader.upload_stream(options, (error, result) => {
+      if (error || !result) {
+        reject(error || new Error('Upload failed'))
+      } else {
+        resolve(result)
       }
-    )
+    })
 
     // Pipe buffer vào stream
     uploadStream.end(fileBuffer)

@@ -7,7 +7,8 @@ export interface IQuiz extends Document {
   fileId: Types.ObjectId // liên kết tới File
   content?: string | null // có thể null nếu lấy nội dung từ file
   level: QuizLevel
-  highestScore: number // 0 -> 10
+  highestScore: number // 0 -> 100
+  attemptCount: number // Số lần user đã làm bài quiz này
 }
 
 const quizSchema = new Schema<IQuiz>(
@@ -34,8 +35,13 @@ const quizSchema = new Schema<IQuiz>(
     },
     highestScore: {
       type: Number,
+      min: -1,
+      max: 100,
+      default: -1
+    },
+    attemptCount: {
+      type: Number,
       min: 0,
-      max: 10,
       default: 0
     }
   },

@@ -4,6 +4,7 @@ export interface IAnswer {
   _id?: Types.ObjectId // subdocument id
   content: string
   isCorrect: boolean
+  explain: string
 }
 
 export interface IQuestion extends Document {
@@ -11,6 +12,7 @@ export interface IQuestion extends Document {
   question: string
   quizId: Types.ObjectId
   answers: IAnswer[]
+  userAnswer?: number | null
 }
 
 const answerSchema = new Schema<IAnswer>(
@@ -24,6 +26,11 @@ const answerSchema = new Schema<IAnswer>(
       type: Boolean,
       required: true,
       default: false
+    },
+    explain: {
+      type: String,
+      required: false,
+      trim: true
     }
   },
   {
@@ -50,6 +57,11 @@ const questionSchema = new Schema<IQuestion>(
     answers: {
       type: [answerSchema],
       default: []
+    },
+    userAnswer: {
+      type: Number,
+      required: false,
+      default: null
     }
   },
   {

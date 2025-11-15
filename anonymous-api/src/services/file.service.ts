@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { StatusCodes } from 'http-status-codes'
 import { FileModel, IFile } from '~/models/file.model'
 import { SubjectModel } from '~/models/subject.model'
@@ -263,6 +264,7 @@ class FileService {
       const quizCount = await Quiz.countDocuments({ fileId: file._id })
 
       return this.formatFileResponse(file as IFile, subject.name, quizCount)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       // Nếu là ApiError thì ném lại, còn lỗi khác thì log và ném lỗi 500
       if (error instanceof ApiError) {
@@ -344,7 +346,7 @@ class FileService {
         // TODO: Có thể thêm metadata khác nếu cần
         language: 'en'
       },
-      summaryContent: file.summaryContent,
+      summaryContent: file.summaryContent
     }
   }
 }
