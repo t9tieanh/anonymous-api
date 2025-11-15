@@ -4,6 +4,7 @@ import { SubjectModel } from '~/models/subject.model'
 import { Quiz } from '~/models/quiz.model'
 import ApiError from '~/middleware/ApiError'
 import { uploadToCloudinary, deleteFromCloudinary, formatFileSize } from '~/utils/cloudinaryUtil'
+import { uploadToCloudinary, deleteFromCloudinary, formatFileSize } from '~/utils/cloudinaryUtil'
 import path from 'path'
 import { Types } from 'mongoose'
 
@@ -284,6 +285,7 @@ class FileService {
       mimeType: file.mimeType || 'application/octet-stream',
       summaryCount: file.summaryCount || 0,
       quizCount: quizCount,
+      url: file.cloudinaryUrl || '',
       url: file.cloudinaryUrl || '',
       metadata: {
         // TODO: Có thể thêm metadata khác nếu cần

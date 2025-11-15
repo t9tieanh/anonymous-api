@@ -48,11 +48,11 @@ const fileSchema = new Schema<IFile>(
     },
     cloudinaryUrl: {
       type: String,
-      default: null // URL public để truy cập file từ MinIO
+      default: null // URL public để truy cập file
     },
     cloudinaryPublicId: {
       type: String,
-      default: null // Object key (path) để xóa file trên MinIO
+      default: null // Public ID để xóa file trên Cloudinary
     },
     mimeType: {
       type: String,
