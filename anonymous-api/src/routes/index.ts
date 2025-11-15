@@ -1,5 +1,6 @@
 import express, { Router } from 'express'
 import authRoutes from '~/routes/auth.route'
+import cloudinaryRoutes from '~/routes/cloudinary.route'
 import subjectsRoutes from '~/routes/subjects.route'
 import subjectRoutes from '~/routes/subject.route'
 import userRoutes from '~/routes/user.route'
@@ -11,8 +12,12 @@ const IndexRouter: Router = express.Router()
 
 IndexRouter.use('/auth', authRoutes)
 
+// Public Cloudinary proxy (must be before auth middleware so it's accessible without auth)
+IndexRouter.use('/', cloudinaryRoutes)
+
 IndexRouter.use(auth)
 
+// IndexRouter.use(auth)
 IndexRouter.use('/subjects', subjectsRoutes)
 IndexRouter.use('/subject', subjectRoutes)
 // IndexRouter.use(authen)

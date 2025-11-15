@@ -12,7 +12,7 @@ export interface IFile extends Document {
   cloudinaryPublicId?: string // Object key (path) của file trong MinIO bucket (dùng để xóa)
   mimeType?: string // MIME type của file (application/pdf, application/vnd.openxmlformats...)
   subjectId?: Types.ObjectId // Tham chiếu đến Subject (môn học)
-  summary_content?: string // Nội dung tóm tắt của file (nếu có)
+  summaryContent?: string // Nội dung tóm tắt của file (nếu có)
   summaryCount: number // Số lượng summaries đã tạo từ file này
   quizCount: number // Số lượng quizzes đã tạo từ file này
   uploadDate: Date // Ngày upload file

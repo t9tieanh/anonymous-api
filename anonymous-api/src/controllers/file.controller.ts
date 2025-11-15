@@ -1,6 +1,10 @@
 import { Request, Response, NextFunction } from 'express'
 import { StatusCodes } from 'http-status-codes'
 import fileService from '~/services/file.service'
+import { FileModel } from '~/models/file.model'
+import { Quiz } from '~/models/quiz.model'
+import { Question } from '~/models/question.model'
+import { Types } from 'mongoose'
 import sendResponse from '~/dto/response/send-response'
 import ApiError from '~/middleware/ApiError'
 
@@ -116,12 +120,58 @@ class FileController {
         throw new ApiError(StatusCodes.UNAUTHORIZED, 'Bạn cần đăng nhập để truy cập')
       }
 
-      const result = await fileService.getFileById(userId, fileId)
+      // base file response from service (formatted)
+      const base = await fileService.getFileById(userId, fileId)
+
+      // enrich with summaries (if present on file doc) and quizzes list
+      const fileDoc = await FileModel.findById(fileId).lean()
+
+      const summaries: Array<Record<string, unknown>> = []
+      if (fileDoc && fileDoc.summaryContent) {
+        summaries.push({
+          id: `${fileId}-s1`,
+          createdAt: ((fileDoc.updatedAt || fileDoc.uploadDate) as unknown) as Date,
+          excerpt: fileDoc.summaryContent as string,
+          aiMatchScore: null,
+          author: { id: 'system', name: 'AutoSummary' },
+          url: `/files/${fileId}/summaries/1`
+        })
+      }
+
+      const quizDocs = await Quiz.find({ fileId }).lean()
+      const quizzes = await Promise.all(
+        quizDocs.map(async (q) => {
+          const questionCount = await Question.countDocuments({ quizId: (q._id as unknown) as Types.ObjectId })
+          const idStr = (q._id as unknown as Types.ObjectId).toString()
+          const qRec = q as unknown as Record<string, unknown>
+          const highestScore = (qRec['highestScore'] as number) ?? 0
+          const createdAt = (qRec['createdAt'] as Date) || undefined
+          return {
+            id: idStr,
+            name: q.name,
+            questionCount,
+            highestScore,
+            createdAt,
+            url: `/quizzes/${idStr}`
+          }
+        })
+      )
+
+      const resultPayload = {
+        file: {
+          ...base,
+          summaries,
+          quizzes
+        }
+      }
 
       sendResponse(res, {
         code: StatusCodes.OK,
         message: 'Lấy thông tin file thành công',
-        result: result
+        result: {
+          success: true,
+          data: resultPayload
+        }
       })
     } catch (error) {
       next(error)
