@@ -19,6 +19,7 @@ export const GenerateSignature = async (payload: JwtPayloadDto) => {
  */
 export const ValidateSignature = async (
   authorizationHeader: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   expectedTokenType: TokenType
 ): Promise<JwtPayloadDto> => {
   const token = authorizationHeader?.split(' ')[1]
