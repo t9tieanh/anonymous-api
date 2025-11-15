@@ -68,12 +68,7 @@ class SubjectService {
                 input: '$files',
                 as: 'f',
                 cond: {
-                  $and: [
-                    {
-                      $ne: ['$$f.summaryContent', null]
-                    },
-                    { $ne: ['$$f.summaryContent', ''] }
-                  ]
+                  $and: [{ $gt: [{ $strLenCP: { $ifNull: ['$$f.summary_content', ''] } }, 0] }]
                 }
               }
             }
