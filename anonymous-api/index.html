@@ -11,168 +11,210 @@
 
 <body class="bg-gray-100">
     <p class="text-sm text-gray-500">Language: Vietnamese 🇻🇳</p>
-    <h1 class="text-3xl font-bold mb-6 text-blue-800">Chương 3: Kỹ thuật kiểm thử hộp trắng 📖</h1>
-    <section class="mb-8">
-        <h2 class="text-2xl font-semibold mb-3 text-blue-700">3.1 Tổng quát về kiểm thử hộp trắng 📝</h2>
-        <p class="text-base text-gray-800 mb-2"> Kiểm thử hộp trắng tập trung vào cấu trúc bên trong của một thành
-            phần phần mềm (TPPM), như hàm, module, hoặc phân hệ chức năng. Mục tiêu là xác định xem TPPM có hoạt động
-            đúng dựa trên thuật toán và cấu trúc dữ liệu nội bộ. 🧠 </p>
-        <ul class="list-disc list-inside ml-4 text-gray-700">
-            <li class="mb-1">Người kiểm thử cần có kiến thức về ngôn ngữ lập trình và thuật toán được sử dụng.</li>
-            <li class="mb-1">Thường tốn nhiều thời gian và công sức cho các TPPM lớn, do đó chủ yếu dùng cho kiểm thử
-                đơn vị (từng tác vụ của một class trong lập trình hướng đối tượng). ⏳</li>
-            <li class="mb-1">Có 2 hoạt động chính: <ul class="list-circle list-inside ml-4 mt-1">
-                    <li class="mb-1">➡️ Kiểm thử luồng điều khiển: Tập trung kiểm thử thuật toán chức năng.</li>
-                    <li class="mb-1">➡️ Kiểm thử dòng dữ liệu: Tập trung kiểm thử đời sống của từng biến dữ liệu.</li>
-                </ul>
-            </li>
-            <li class="mb-1">Chương này tập trung vào kiểm thử luồng điều khiển.</li>
-        </ul>
-    </section>
-    <section class="mb-8">
-        <h2 class="text-2xl font-semibold mb-3 text-blue-700">3.2 Một số thuật ngữ về kiểm thử luồng điều khiển 🔍
-        </h2>
-        <p class="text-base text-gray-800 mb-2"> <span class="font-medium">Đường thi hành (Execution path)</span>:
-            Là một kịch bản thi hành cụ thể của đơn vị phần mềm, bao gồm danh sách có thứ tự các lệnh từ điểm nhập đến
-            điểm kết thúc. 🛣️ </p>
-        <ul class="list-disc list-inside ml-4 text-gray-700">
-            <li class="mb-1">Mỗi TPPM có thể có nhiều đường thi hành. Mục tiêu là đảm bảo mọi đường thi hành chạy
-                đúng, nhưng điều này rất khó đạt được trong thực tế do số lượng đường thi hành có thể rất lớn (ví dụ:
-                2^32 đường cho 32 lệnh if-else độc lập). ⚠️</li>
-            <li class="mb-1">Kiểm thử hết các đường thi hành vẫn không thể phát hiện: <ul class="list-circle
-                    list-inside ml-4 mt-1">
-                    <li class="mb-1">❌ Những đường thi hành cần có nhưng chưa được hiện thực.</li>
-                    <li class="mb-1">❌ Lỗi trong các trường hợp đặc biệt (ví dụ: chia cho 0) dù đã kiểm tra đúng với
-                        các trường hợp thông thường.</li>
-                </ul>
-            </li>
-        </ul>
-    </section>
-    <section class="mb-8">
-        <h2 class="text-2xl font-semibold mb-3 text-blue-700">3.3 Các cấp phủ kiểm thử (Coverage) 📊</h2>
-        <p class="text-base text-gray-800 mb-2"> <span class="font-medium">Phủ kiểm thử (Coverage)</span>: Tỷ lệ các
-            thành phần được kiểm thử so với tổng thể. Phủ càng lớn, độ tin cậy càng cao. Thành phần có thể là lệnh, điểm
-            quyết định, điều kiện con. 📈 </p>
-        <ul class="list-disc list-inside ml-4 text-gray-700">
-            <li class="mb-1"> <span class="font-medium">Phủ cấp 0 (Zero Coverage)</span>: Kiểm thử những gì có thể,
-                phần còn lại để người dùng phát hiện. (Không có trách nhiệm). 🗑️ </li>
-            <li class="mb-1"> <span class="font-medium">Phủ cấp 1 (Statement Coverage)</span>: Mỗi lệnh được thực
-                thi ít nhất một lần. <ul class="list-circle list-inside ml-4 mt-1">
-                    <li class="mb-1">Ví dụ hàm `foo` chỉ cần 2 test case để đạt 100% phủ cấp 1 nhưng không phát hiện
-                        lỗi chia 0. ❌</li>
-                </ul>
-            </li>
-            <li class="mb-1"> <span class="font-medium">Phủ cấp 2 (Branch Coverage)</span>: Mỗi điểm quyết định luận
-                lý được thực hiện ít nhất một lần cho cả trường hợp TRUE và FALSE. Đảm bảo phủ các lệnh. <ul
-                    class="list-circle list-inside ml-4 mt-1">
-                    <li class="mb-1">Ví dụ hàm `foo` cần 3 test case để đạt 100% phủ nhánh và phát hiện lỗi chia 0. ✅
-                    </li>
-                </ul>
-            </li>
-            <li class="mb-1"> <span class="font-medium">Phủ cấp 3 (Subcondition Coverage)</span>: Mỗi điều kiện luận
-                lý con của từng điểm quyết định được thực hiện ít nhất một lần cho cả TRUE và FALSE. Phủ các điều kiện
-                con chưa chắc đảm bảo phủ các nhánh và ngược lại. </li>
-            <li class="mb-1"> <span class="font-medium">Phủ cấp 4 (Branch & Subcondition Coverage)</span>: Mỗi điều
-                kiện luận lý con và điểm quyết định đều được thực hiện ít nhất một lần cho cả TRUE và FALSE. Đây là mức
-                độ phủ kiểm thử tốt nhất trong thực tế. 🌟 </li>
-        </ul>
-    </section>
-    <section class="mb-8">
-        <h2 class="text-2xl font-semibold mb-3 text-blue-700">3.4 Đồ thị dòng điều khiển (Control Flow Graph - CFG) ⚙️
-        </h2>
-        <p class="text-base text-gray-800 mb-2"> Là một phương pháp trực quan mô tả thuật toán, thể hiện các thành
-            phần và mối quan hệ thực hiện giữa chúng. 🗺️ </p>
-        <ul class="list-disc list-inside ml-4 text-gray-700">
-            <li class="mb-1">Gồm 2 loại thành phần: các <span class="font-medium">nút</span> và các <span
-                    class="font-medium">cung</span> nối kết.</li>
-            <li class="mb-1">Các loại nút phổ dụng: điểm xuất phát, khối xử lý, điểm quyết định, điểm nối, điểm kết
-                thúc.</li>
-            <li class="mb-1">Mô tả các cấu trúc điều khiển như tuần tự, `if`, `switch`, `while`, `do-while`.</li>
-            <li class="mb-1"> <span class="font-medium">Đồ thị dòng điều khiển nhị phân</span>: Chỉ chứa các nút
-                quyết định nhị phân (có 2 cung xuất True/False). Mọi CFG đều có thể chi tiết hóa thành CFG nhị phân.
-            </li>
-            <li class="mb-1"> <span class="font-medium">Độ phức tạp Cyclomatic C (V(G))</span>: <ul
-                    class="list-circle list-inside ml-4 mt-1">
-                    <li class="mb-1">Tính bằng: `V(G) = E - N + 2` (E: số cung, N: số nút) hoặc `V(G) = P + 1` (P: số
-                        nút quyết định, cho CFG nhị phân). 🔢</li>
-                    <li class="mb-1">C chính là số đường thi hành tuyến tính độc lập của TPPM.</li>
-                    <li class="mb-1">Kiểm thử đúng C đường này sẽ đạt phủ kiểm thử cấp 3. ✅</li>
-                </ul>
-            </li>
-        </ul>
-    </section>
-    <section class="mb-8">
-        <h2 class="text-2xl font-semibold mb-3 text-blue-700">3.5 Đồ thị dòng điều khiển cơ bản (Basic CFG) 🛠️</h2>
-        <p class="text-base text-gray-800 mb-2"> Là một đồ thị dòng điều khiển nhị phân mà mỗi nút quyết định (nhị
-            phân) mô tả một điều kiện con luận lý. 💡 </p>
-        <ul class="list-disc list-inside ml-4 text-gray-700">
-            <li class="mb-1">Mọi CFG đều có thể chi tiết hóa thành CFG nhị phân, và sau đó thành CFG cơ bản.</li>
-            <li class="mb-1">Độ phức tạp Cyclomatic C của CFG cơ bản là số đường thi hành tuyến tính độc lập cơ bản.
-            </li>
-            <li class="mb-1">Kiểm thử đúng C đường thi hành tuyến tính độc lập cơ bản này sẽ đạt phủ kiểm thử cấp 4
-                (mức tốt nhất trong thực tế). 🎯</li>
-        </ul>
-    </section>
-    <section class="mb-8">
-        <h2 class="text-2xl font-semibold mb-3 text-blue-700">3.6 Qui trình kiểm thử hộp trắng (Tom McCabe) 🧪</h2>
-        <ol class="list-decimal list-inside ml-4 text-gray-700">
-            <li class="mb-1">Từ TPPM, xây dựng đồ thị dòng điều khiển, chuyển thành nhị phân, rồi thành cơ bản. ➡️
-            </li>
-            <li class="mb-1">Tính độ phức tạp Cyclomatic C (`C = P + 1`). 🔢</li>
-            <li class="mb-1">Xác định C đường thi hành tuyến tính độc lập cơ bản cần kiểm thử. 🛣️</li>
-            <li class="mb-1">Tạo từng test case cho mỗi đường thi hành. 📝</li>
-            <li class="mb-1">Thực hiện kiểm thử trên từng test case. 🚀</li>
-            <li class="mb-1">So sánh kết quả với kết quả kỳ vọng. ✅</li>
-            <li class="mb-1">Lập báo cáo kết quả. 📄</li>
-        </ol>
-        <h3 class="text-xl font-semibold mt-4 mb-2 text-blue-600">Qui trình xác định các đường tuyến tính độc lập:
-        </h3>
-        <ol class="list-decimal list-inside ml-4 text-gray-700">
-            <li class="mb-1">Xác định đường tuyến tính đầu tiên bằng cách đi dọc nhánh trái nhất (đường pilot). 📍
-            </li>
-            <li class="mb-1">Dựa trên đường pilot, thay đổi cung xuất của nút quyết định đầu tiên và giữ lại phần còn
-                lại tối đa. 🔄</li>
-            <li class="mb-1">Lặp lại cho nút quyết định thứ 2, 3,... trên đường pilot.</li>
-            <li class="mb-1">Tiếp tục lặp lại quá trình này với các đường mới tìm được làm pilot cho đến khi đủ C
-                đường. 💡</li>
-        </ol>
-    </section>
-    <section class="mb-8">
-        <h2 class="text-2xl font-semibold mb-3 text-blue-700">3.7 Thí dụ (Example) 💡</h2>
-        <p class="text-base text-gray-800 mb-2"> Với một đồ thị có 5 nút quyết định nhị phân, độ phức tạp C = 5+1 = 6.
-            Cần 6 đường thi hành tuyến tính độc lập cơ bản. 🔢 </p>
-        <p class="text-base text-gray-800 mb-2"> Ví dụ hàm `average`: 6 test case được thiết kế tương ứng với 6 đường
-            thi hành, mỗi test case có các điều kiện đầu vào và kết quả kỳ vọng riêng để kiểm tra các kịch bản khác nhau
-            (ví dụ: giá trị hợp lệ, giá trị không hợp lệ, vượt giới hạn, v.v.). 🧪 </p>
-    </section>
-    <section class="mb-8">
-        <h2 class="text-2xl font-semibold mb-3 text-blue-700">3.8 Kiểm thử vòng lặp (Loop Testing) 🔄</h2>
-        <p class="text-base text-gray-800 mb-2"> Kiểm thử đầy đủ vòng lặp rất tốn kém, nên tập trung vào các lần lặp
-            dễ gây lỗi nhất. Có 4 loại vòng lặp: đơn giản, lồng nhau, liền kề, giao nhau. 🚧 </p>
-        <ul class="list-disc list-inside ml-4 text-gray-700">
-            <li class="mb-1"> <span class="font-medium">1. Vòng lặp đơn giản (n lần)</span>: Kiểm thử thân lệnh lặp
-                ở các vị trí: 0 bước, 1 bước, 2 bước, k bước (2 < k < n-1), n-1 bước, n bước, n+1 bước. 📊 </li>
-            <li class="mb-1"> <span class="font-medium">2. Vòng lặp lồng nhau</span>: Kiểm thử tuần tự từ trong ra
-                ngoài. <ul class="list-circle list-inside ml-4 mt-1">
-                    <li class="mb-1">Vòng trong cùng: Các vòng ngoài chạy giá trị min, vòng trong cùng dùng 7 test
-                        case trên.</li>
-                    <li class="mb-1">Các vòng còn lại: Vòng ngoài nó chạy giá trị min, vòng trong nó chạy giá trị điển
-                        hình, vòng đang xét dùng 7 test case trên.</li>
-                </ul>
-            </li>
-            <li class="mb-1"> <span class="font-medium">3. Vòng lặp liền kề</span>: Kiểm thử tuần tự từng vòng từ
-                trên xuống, mỗi vòng dùng 7 test case. </li>
-            <li class="mb-1"> <span class="font-medium">4. Vòng lặp giao nhau</span>: Thường do code chưa tốt, nên
-                cấu trúc lại để tránh dạng này. ⚠️ </li>
-        </ul>
-    </section>
-    <section>
-        <h2 class="text-2xl font-semibold mb-3 text-blue-700">3.9 Kết chương 🔚</h2>
-        <p class="text-base text-gray-800"> Chương này đã giới thiệu kỹ thuật kiểm thử dòng điều khiển, một kỹ thuật
-            thiết yếu trong kiểm thử hộp trắng. Chúng ta đã tìm hiểu về các cấp độ phủ kiểm thử, đồ thị dòng điều khiển
-            và đồ thị dòng điều khiển cơ bản, độ phức tạp Cyclomatic C, qui trình kiểm thử tổng quát và một ví dụ cụ
-            thể. ✅ </p>
-    </section>
+    <h1 class="text-3xl font-bold mb-6 text-blue-800">Chương 3: Kỹ thuật kiểm thử hộp trắng 📦</h1>
+    <h2 class="text-2xl font-semibold mb-4 text-blue-700">3.1 Tổng quát về kiểm thử hộp trắng 💡</h2>
+    <ul class="list-disc pl-6 mb-4 space-y-2 text-gray-800">
+        <li>Đối tượng kiểm thử: Thành phần phần mềm (TPPM) như hàm, module, phân hệ chức năng.</li>
+        <li>Cơ sở: Dựa vào thuật toán và cấu trúc dữ liệu bên trong để xác định tính đúng đắn của TPPM.</li>
+        <li>Yêu cầu người kiểm thử: Cần có kỹ năng và kiến thức về ngôn ngữ lập trình, thuật toán được sử dụng.</li>
+        <li>Chi phí: Tốn nhiều thời gian và công sức nếu TPPM quá lớn (ví dụ: kiểm thử tích hợp, chức năng).</li>
+        <li>Ứng dụng chính: Chủ yếu dùng để kiểm thử đơn vị (trong lập trình hướng đối tượng là kiểm thử từng tác vụ của
+            một class).</li>
+        <li>Hai hoạt động kiểm thử hộp trắng: <ul class="list-disc pl-6 mt-2 space-y-1">
+                <li><span class="font-medium">Kiểm thử luồng điều khiển:</span> Tập trung kiểm thử thuật toán chức
+                    năng. ⚙️</li>
+                <li><span class="font-medium">Kiểm thử dòng dữ liệu:</span> Tập trung kiểm thử "đời sống" của từng
+                    biến dữ liệu trong thuật toán. 📊</li>
+            </ul>
+        </li>
+        <li>Chương này tập trung giới thiệu về kiểm thử luồng điều khiển.</li>
+    </ul>
+    <h2 class="text-2xl font-semibold mb-4 text-blue-700">3.2 Một số thuật ngữ về kiểm thử luồng điều khiển 🗺️</h2>
+    <ul class="list-disc pl-6 mb-4 space-y-2 text-gray-800">
+        <li><span class="font-medium">Đường thi hành (Execution path):</span> Là một kịch bản thi hành đơn vị phần
+            mềm, cụ thể là danh sách có thứ tự các lệnh được thi hành ứng với một lần chạy, từ điểm nhập đến điểm kết
+            thúc.</li>
+        <li>Mục tiêu: Đảm bảo mọi đường thi hành của đơn vị phần mềm đều chạy đúng. Tuy nhiên, việc này rất tốn kém
+            trong thực tế.</li>
+        <li><span class="font-medium">Ví dụ về độ phức tạp của đường thi hành:</span>
+            <ul class="list-disc pl-6 mt-2 space-y-1">
+                <li>Code với 3 vòng lặp `for` lồng nhau (1000x1000x1000): Chỉ có 1 đường thi hành nhưng rất dài (1 tỷ
+                    lệnh gọi).</li>
+                <li>Code với 32 lệnh `if-else` độc lập: Có 2^32 = 4 tỷ đường thi hành khác nhau.</li>
+            </ul>
+        </li>
+        <li><span class="font-medium">Hạn chế của việc kiểm thử toàn bộ đường thi hành:</span>
+            <ul class="list-disc pl-6 mt-2 space-y-1">
+                <li>Không thể phát hiện những đường thi hành cần có nhưng chưa được hiện thực (ví dụ: thiếu xử lý trường
+                    hợp `a < 0`). 🚧</li>
+                <li>Một đường thi hành đã kiểm tra là đúng vẫn có thể bị lỗi khi dùng thật trong trường hợp đặc biệt (ví
+                    dụ: hàm `phanso(a, b)` chạy đúng khi `b <> 0`, nhưng lỗi khi `b = 0`). ⚠️</li>
+            </ul>
+        </li>
+    </ul>
+    <h2 class="text-2xl font-semibold mb-4 text-blue-700">3.3 Các cấp phủ kiểm thử (Coverage) 🎯</h2>
+    <p class="mb-2 text-gray-800">Để tối ưu hóa độ tin cậy với số lượng test case tối thiểu, ta sử dụng khái niệm Phủ
+        kiểm thử.</p>
+    <ul class="list-disc pl-6 mb-4 space-y-2 text-gray-800">
+        <li><span class="font-medium">Định nghĩa Phủ kiểm thử:</span> Tỷ lệ các thành phần thực sự được kiểm thử so
+            với tổng thể sau khi đã kiểm thử các test case được chọn. Phủ càng lớn, độ tin cậy càng cao.</li>
+        <li>Thành phần liên quan có thể là lệnh thực thi, điểm quyết định, điều kiện con hoặc sự kết hợp của chúng.</li>
+        <li><span class="font-medium">Phủ cấp 0:</span> Kiểm thử những gì có thể, phần còn lại để người dùng phát
+            hiện. Mức độ kiểm thử không có trách nhiệm. 📉</li>
+        <li><span class="font-medium">Phủ cấp 1 (Statement coverage):</span> Đảm bảo mỗi lệnh được thực thi ít nhất
+            một lần. <ul class="list-disc pl-6 mt-2 space-y-1">
+                <li>Ví dụ hàm `foo`: 2 test case có thể đạt 100% phủ cấp 1 nhưng không phát hiện lỗi chia 0.</li>
+            </ul>
+        </li>
+        <li><span class="font-medium">Phủ cấp 2 (Branch coverage):</span> Đảm bảo mỗi điểm quyết định luận lý được
+            thực hiện ít nhất một lần cho cả trường hợp TRUE và FALSE. Mức này đảm bảo phủ các lệnh. <ul
+                class="list-disc pl-6 mt-2 space-y-1">
+                <li>Ví dụ hàm `foo`: 2 test case chỉ đạt 75% phủ nhánh. Cần thêm test case thứ 3 để đạt 100% và phát
+                    hiện lỗi chia 0.</li>
+            </ul>
+        </li>
+        <li><span class="font-medium">Phủ cấp 3 (Subcondition coverage):</span> Đảm bảo mỗi điều kiện luận lý con của
+            từng điểm quyết định được thực hiện ít nhất một lần cho cả trường hợp TRUE và FALSE. Phủ các điều kiện con
+            chưa chắc đảm bảo phủ các nhánh và ngược lại.</li>
+        <li><span class="font-medium">Phủ cấp 4 (Branch & Subcondition coverage):</span> Đảm bảo mỗi điều kiện luận lý
+            con của từng điểm quyết định và điểm quyết định đó đều được kiểm thử cho cả 2 nhánh TRUE và FALSE. Đây là
+            mức độ phủ kiểm thử tốt nhất trong thực tế. Chương này sẽ giới thiệu quy trình để đạt phủ cấp 4. 🏆</li>
+    </ul>
+    <h2 class="text-2xl font-semibold mb-4 text-blue-700">3.4 Đồ thị dòng điều khiển 📈</h2>
+    <ul class="list-disc pl-6 mb-4 space-y-2 text-gray-800">
+        <li>Định nghĩa: Là một phương pháp trực quan để miêu tả thuật toán, thể hiện dễ dàng các thành phần và mối quan
+            hệ thực hiện giữa chúng.</li>
+        <li>Thành phần: Gồm các nút và các cung nối kết giữa chúng.</li>
+        <li>Các loại nút phổ dụng: Điểm xuất phát, khối xử lý, điểm quyết định, điểm nối, điểm kết thúc.</li>
+        <li>Miêu tả các cấu trúc điều khiển: Tuần tự, If, Switch, While, Do-While.</li>
+        <li><span class="font-medium">Đồ thị dòng điều khiển nhị phân:</span> Nếu chỉ chứa các nút quyết định nhị
+            phân. Bất kỳ đồ thị nào cũng có thể chi tiết hóa thành đồ thị nhị phân.</li>
+        <li><span class="font-medium">Độ phức tạp Cyclomatic C (V(G)):</span>
+            <ul class="list-disc pl-6 mt-2 space-y-1">
+                <li>Công thức 1: `V(G) = E - N + 2` (E: số cung, N: số nút).</li>
+                <li>Công thức 2: `V(G) = P + 1` (P: số nút quyết định trong đồ thị nhị phân).</li>
+                <li>Ý nghĩa: Chính là số đường thi hành tuyến tính độc lập của TPPM cần kiểm thử.</li>
+                <li>Nếu kiểm thử đúng C đường này, sẽ đạt phủ kiểm thử cấp 3.</li>
+            </ul>
+        </li>
+    </ul>
+    <h2 class="text-2xl font-semibold mb-4 text-blue-700">3.5 Đồ thị dòng điều khiển cơ bản 🌳</h2>
+    <ul class="list-disc pl-6 mb-4 space-y-2 text-gray-800">
+        <li>Định nghĩa: Là đồ thị dòng điều khiển nhị phân mà từng nút quyết định (nhị phân) đều miêu tả một điều kiện
+            con luận lý.</li>
+        <li>Bất kỳ đồ thị dòng điều khiển nào cũng có thể chi tiết hóa thành đồ thị dòng điều khiển cơ bản.</li>
+        <li><span class="font-medium">Độ phức tạp Cyclomatic C của đồ thị cơ bản:</span> Chính là số đường thi hành
+            tuyến tính độc lập cơ bản của TPPM.</li>
+        <li>Nếu kiểm thử đúng C đường này, sẽ đạt phủ kiểm thử cấp 4. ✅</li>
+    </ul>
+    <h2 class="text-2xl font-semibold mb-4 text-blue-700">3.6 Qui trình kiểm thử hộp trắng (Tom McCabe) 📝</h2>
+    <h3 class="text-xl font-medium mb-3 text-blue-600">Các bước công việc:</h3>
+    <ol class="list-decimal pl-6 mb-4 space-y-2 text-gray-800">
+        <li>Từ TPPM, xây dựng đồ thị dòng điều khiển (chuyển thành nhị phân, rồi cơ bản). ➡️</li>
+        <li>Tính độ phức tạp Cyclomatic của đồ thị (C = P + 1). 🔢</li>
+        <li>Xác định C đường thi hành tuyến tính độc lập cơ bản cần kiểm thử. 📍</li>
+        <li>Tạo từng test case cho từng đường thi hành. 🧪</li>
+        <li>Thực hiện kiểm thử trên từng test case. ▶️</li>
+        <li>So sánh kết quả với kết quả kỳ vọng. ✅❌</li>
+        <li>Lập báo cáo kết quả. 📄</li>
+    </ol>
+    <h3 class="text-xl font-medium mb-3 text-blue-600">Qui trình xác định các đường tuyến tính độc lập:</h3>
+    <ol class="list-decimal pl-6 mb-4 space-y-2 text-gray-800">
+        <li>Xác định đường tuyến tính đầu tiên bằng cách đi dọc theo nhánh bên trái nhất của các nút quyết định. Chọn
+            đường này làm "pilot". 🧭</li>
+        <li>Dựa trên đường pilot, thay đổi cung xuất của nút quyết định đầu tiên và cố gắng giữ lại phần còn lại tối đa.
+            🔄</li>
+        <li>Dựa trên đường pilot, thay đổi cung xuất của nút quyết định thứ hai và cố gắng giữ lại phần còn lại tối đa.
+        </li>
+        <li>Tiếp tục thay đổi cung xuất cho từng nút quyết định trên đường pilot để xác định các đường tiếp theo cho đến
+            khi không còn nút quyết định nào trong đường pilot.</li>
+        <li>Lặp lại: Chọn tuần tự từng đường tìm được làm pilot để xác định các đường mới xung quanh nó, cho đến khi
+            không tìm được đường tuyến tính độc lập nào nữa (khi đủ số C). 🔁</li>
+    </ol>
+    <h2 class="text-2xl font-semibold mb-4 text-blue-700">3.7 Thí dụ: Hàm `average` 💡</h2>
+    <p class="mb-2 text-gray-800">Ví dụ về hàm `average` có đồ thị dòng điều khiển với 5 nút quyết định nhị phân, suy
+        ra độ phức tạp C = 5+1 = 6.</p>
+    <h3 class="text-xl font-medium mb-2 text-blue-600">6 đường thi hành tuyến tính độc lập cơ bản:</h3>
+    <ol class="list-decimal pl-6 mb-4 space-y-1 text-gray-800">
+        <li>1→2→10→11</li>
+        <li>1→2→3→10→11</li>
+        <li>1→2→3→4→5→8→9</li>
+        <li>1→2→3→4→5→6→8→9</li>
+        <li>1→2→3→4→5→6→7→8→9</li>
+        <li>1→2→10→12</li>
+    </ol>
+    <h3 class="text-xl font-medium mb-2 text-blue-600">Thiết kế các Test Case (ví dụ):</h3>
+    <ul class="list-disc pl-6 mb-4 space-y-2 text-gray-800">
+        <li><span class="font-medium">Đường 1:</span> `value(k) <> -999` (1
+                < k < i), `value(i)=-999` (2 ≤ i ≤ 100). <br />Kết quả kỳ vọng: `average` là trung bình của `i-1` giá
+                trị hợp lệ, `tcnt = i-1`, `vcnt = i-1`. (Lưu ý: Đường 1 không thể kiểm thử riêng biệt).</li>
+        <li><span class="font-medium">Đường 2:</span> `value(k) <> -999` (∀k < i), `i> 100`. <br />Kết quả kỳ vọng:
+                    `average` là trung bình của 100 giá trị hợp lệ, `tcnt = 100`, `vcnt = 100`.</li>
+        <li><span class="font-medium">Đường 3:</span> `value(1) = -999`. <br />Kết quả kỳ vọng: `average = -999`,
+            `tcnt = 0`, `vcnt = 0`.</li>
+        <li><span class="font-medium">Đường 4:</span> `value(i) <> -999` (∀i
+                <= 100) và `value(k) < min` (k < i). <br />Kết quả kỳ vọng: `average` là trung bình của `n` giá trị hợp
+                lệ, `tcnt = 100`, `vcnt = n`.</li>
+        <li><span class="font-medium">Đường 5:</span> `value(i) <> -999` (∀i <= 100) và `value(k)> max` (k
+                    <= i). <br />Kết quả kỳ vọng: `average` là trung bình của `n` giá trị hợp lệ, `tcnt = 100`, `vcnt =
+                    n`.</li>
+        <li><span class="font-medium">Đường 6:</span> `value(i) <> -999` và `min
+                <= value(i) <=max` (∀i <=100). <br />Kết quả kỳ vọng: `average` là trung bình của 100 giá trị hợp lệ,
+                `tcnt = 100`, `vcnt = 100`.</li>
+    </ul>
+    <h2 class="text-2xl font-semibold mb-4 text-blue-700">3.8 Kiểm thử vòng lặp 🔄</h2>
+    <p class="mb-2 text-gray-800">Do chi phí kiểm thử đầy đủ vòng lặp rất tốn kém, ta chỉ kiểm thử ở những lần lặp dễ
+        gây lỗi nhất.</p>
+    <h3 class="text-xl font-medium mb-3 text-blue-600">Các loại lệnh lặp:</h3>
+    <ul class="list-disc pl-6 mb-4 space-y-2 text-gray-800">
+        <li><span class="font-medium">Lặp đơn giản:</span> Thân chỉ chứa các lệnh khác, không chứa lệnh lặp khác.</li>
+        <li><span class="font-medium">Lặp lồng nhau:</span> Thân chứa ít nhất một lệnh lặp khác.</li>
+        <li><span class="font-medium">Lặp liền kề:</span> Hai hay nhiều lệnh lặp kế tiếp nhau.</li>
+        <li><span class="font-medium">Lặp giao nhau:</span> Hai hay nhiều lệnh lặp giao nhau (thường do code chưa tốt,
+            nên cấu trúc lại).</li>
+    </ul>
+    <h3 class="text-xl font-medium mb-3 text-blue-600">Chiến lược kiểm thử từng loại vòng lặp:</h3>
+    <ul class="list-disc pl-6 mb-4 space-y-2 text-gray-800">
+        <li><span class="font-medium">1. Kiểm thử vòng lặp đơn giản (n lần):</span>
+            <p class="mt-1 mb-1">Nên chọn các test case để kiểm thử thân lệnh lặp ở các vị trí sau:</p>
+            <ul class="list-disc pl-6 space-y-1">
+                <li>Chạy 0 bước.</li>
+                <li>Chạy 1 bước.</li>
+                <li>Chạy 2 bước.</li>
+                <li>Chạy k bước (2 < k < n-1).</li>
+                <li>Chạy n-1 bước.</li>
+                <li>Chạy n bước.</li>
+                <li>Chạy n+1 bước.</li>
+            </ul>
+        </li>
+        <li><span class="font-medium">2. Kiểm thử vòng lặp lồng nhau:</span>
+            <p class="mt-1 mb-1">Kiểm thử tuần tự từng vòng lặp từ trong ra ngoài:</p>
+            <ul class="list-disc pl-6 space-y-1">
+                <li><span class="font-semibold">Vòng lặp trong cùng:</span> Các vòng ngoài chạy với giá trị tối thiểu
+                    (min), vòng trong cùng được kiểm thử bằng 7 test case như trên.</li>
+                <li><span class="font-semibold">Từng vòng lặp còn lại:</span> Các vòng ngoài nó chạy với giá trị min,
+                    các vòng bên trong nó chạy với giá trị điển hình, vòng đang xét được kiểm thử bằng 7 test case như
+                    trên.</li>
+            </ul>
+        </li>
+        <li><span class="font-medium">3. Kiểm thử các vòng lặp liền kề:</span>
+            <p class="mt-1 mb-1">Kiểm thử tuần tự từng vòng lặp từ trên xuống, mỗi vòng thực hiện kiểm thử bằng 7 test
+                case đã giới thiệu.</p>
+        </li>
+        <li><span class="font-medium">4. Vòng lặp giao nhau:</span>
+            <p class="mt-1 mb-1">Thường do việc viết code chưa tốt tạo ra, nên cấu trúc lại đoạn code để không chứa
+                dạng giao nhau này.</p>
+        </li>
+    </ul>
+    <h2 class="text-2xl font-semibold mb-4 text-blue-700">3.9 Kết chương 🎉</h2>
+    <ul class="list-disc pl-6 mb-4 space-y-2 text-gray-800">
+        <li>Chương này đã giới thiệu kỹ thuật thiết yếu để kiểm thử hộp trắng TPPM: kỹ thuật kiểm thử dòng điều khiển.
+        </li>
+        <li>Các cấp độ phủ kiểm thử khác nhau đã được trình bày.</li>
+        <li>Giới thiệu về đồ thị dòng điều khiển (nhị phân, cơ bản) và độ phức tạp Cyclomatic C.</li>
+        <li>Trình bày quy trình tổng quát để kiểm thử dòng điều khiển.</li>
+        <li>Cung cấp một ví dụ cụ thể về quy trình kiểm thử dòng điều khiển trên một TPPM.</li>
+    </ul>
 </body>
 
 </html>

@@ -1,11 +1,23 @@
 import { Request, Response } from 'express'
 import { translateHtml } from '../services/translate.service'
+import { franc } from 'franc-min'
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || ''
 
 export const handleTranslateHtml = async (req: Request, res: Response) => {
     try {
         const { content, targetLang, model } = req.body || {}
+
+        const detectedLang = franc(content)
+
+        console.log('detectedLang', detectedLang)
+        console.log('targetLang', targetLang)
+
+        if (detectedLang === targetLang) {
+            console.log('VO')
+            return res.json({ result: content, targetLang, model: model || 'gemini-2.5-flash' })
+        }
+
         if (!content || typeof content !== 'string') {
             return res.status(400).json({ message: 'content is required (HTML string)' })
         }
