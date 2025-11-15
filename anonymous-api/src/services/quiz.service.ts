@@ -306,7 +306,7 @@ export const submitQuiz = async (quizId: string, submitData: SubmitQuizRequest):
       continue
     }
 
-    // Cập nhật userAnswer trong question model
+    // Cập nhật userAnswer trong question model (ghi đè câu trả lời cũ)
     await Question.findByIdAndUpdate(answer.questionId, {
       userAnswer: answer.selectedAnswer
     })
@@ -345,18 +345,23 @@ export const submitQuiz = async (quizId: string, submitData: SubmitQuizRequest):
   const incorrectAnswers = totalQuestions - correctAnswers
 
   // Làm tròn điểm đến 2 chữ số thập phân
-  const roundedScore = Math.round(score * 100) / 100
+  const roundedScore = Math.round(score * 100) / 10
 
-  // Cập nhật highestScore nếu điểm mới cao hơn
+  // Cập nhật highestScore nếu điểm mới cao hơn và tăng attemptCount
   const quiz = await Quiz.findById(quizId)
   let isNewRecord = false
 
   if (quiz) {
+    // Tăng số lần làm bài
+    quiz.attemptCount = (quiz.attemptCount || 0) + 1
+
+    // Cập nhật điểm cao nhất nếu điểm mới cao hơn
     if (roundedScore > quiz.highestScore) {
       quiz.highestScore = roundedScore
-      await quiz.save()
       isNewRecord = true
     }
+
+    await quiz.save()
   }
 
   return {
