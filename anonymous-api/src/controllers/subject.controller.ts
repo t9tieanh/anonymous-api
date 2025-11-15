@@ -60,7 +60,14 @@ class SubjectController {
       name: req.body.name,
       id: req.body.id
     }
-    const userId = `69183495fa6da2de813a9739`
+    const userId = req.user?.userId
+    if (!userId) {
+      return sendResponse(res, {
+        code: 400,
+        message: "UserId is missing",
+        result: null
+      })
+    }
     const data = await subjectService.updateSubject(userId, dto)
     sendResponse(res, {
       code: 200,
