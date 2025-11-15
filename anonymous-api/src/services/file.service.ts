@@ -3,7 +3,7 @@ import { FileModel, IFile } from '~/models/file.model'
 import { SubjectModel } from '~/models/subject.model'
 import { Quiz } from '~/models/quiz.model'
 import ApiError from '~/middleware/ApiError'
-import { uploadToMinIO, deleteFromMinIO, formatFileSize } from '~/utils/minioUtil'
+import { uploadToCloudinary, deleteFromCloudinary, formatFileSize } from '~/utils/cloudinaryUtil'
 import path from 'path'
 import { Types } from 'mongoose'
 
@@ -121,7 +121,8 @@ class FileService {
     createSummary: boolean = false,
     generateQuiz: boolean = false,
     quizQuestions: number = 10,
-    quizDifficulty: string = 'Medium'
+    quizDifficulty: string = 'Medium',
+    uploadPreset?: string
   ) {
     // Kiểm tra subject có tồn tại và thuộc về user không
     const subject = await SubjectModel.findOne({
@@ -136,8 +137,13 @@ class FileService {
     // Lấy extension của file
     const fileExtension = path.extname(file.originalname).toLowerCase()
 
-    // Upload file lên MinIO với tên file gốc để giữ extension
-    const uploadResult = await uploadToMinIO(file.buffer, file.originalname, 'hackathon-files')
+    // Upload file lên Cloudinary với tên file gốc để giữ extension
+    const uploadResult = await uploadToCloudinary(
+      file.buffer,
+      file.originalname,
+      'hackathon-files',
+      uploadPreset
+    )
 
     // Tạo file record trong database
     const newFile = await FileModel.create({
@@ -145,8 +151,8 @@ class FileService {
       type: fileExtension as '.docx' | '.doc' | '.pdf' | '.md',
       size: file.size,
       mimeType: file.mimetype,
-      minioUrl: uploadResult.url,
-      minioObjectKey: uploadResult.objectKey,
+      minioUrl: uploadResult.secure_url, // reuse field to store Cloudinary URL
+      minioObjectKey: uploadResult.public_id, // reuse field to store Cloudinary public_id
       subjectId: new Types.ObjectId(subjectId),
       status: 'ACTIVE',
       uploadDate: new Date(),
@@ -238,9 +244,13 @@ class FileService {
       throw new ApiError(StatusCodes.FORBIDDEN, 'Bạn không có quyền xóa file này')
     }
 
-    // Xóa file từ MinIO
+    // Xóa file trên Cloudinary nếu có public_id
     if (file.minioObjectKey) {
-      await deleteFromMinIO(file.minioObjectKey)
+      try {
+        await deleteFromCloudinary(file.minioObjectKey, 'raw')
+      } catch (e) {
+        // ignore delete errors to avoid blocking user flow
+      }
     }
 
     // Soft delete: đánh dấu status = DELETED

@@ -32,4 +32,9 @@ export const env = {
   RABBIT_MQ_PORT: process.env.RABBIT_MQ_PORT,
   RABBIT_MQ_USER_NAME: process.env.RABBIT_MQ_USER_NAME,
   RABBIT_MQ_PASSWORD: process.env.RABBIT_MQ_PASSWORD
+  ,
+  // Cloudinary Configuration
+  CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || '',
+  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY || '',
+  CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET || ''
 }
