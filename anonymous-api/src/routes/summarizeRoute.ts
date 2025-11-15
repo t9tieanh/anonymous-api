@@ -9,4 +9,4 @@ const upload = multer({ dest: 'uploads/' });
 router.post('/summarize', upload.single('file'), handleSummarize);
 router.post('/quiz', upload.single('file'), handleGenerateQuiz)
 
-export default router;
+export default router

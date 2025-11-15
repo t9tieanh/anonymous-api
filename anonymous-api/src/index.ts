@@ -6,8 +6,8 @@ import { env } from '~/config/env'
 import { errorHandlingMiddleware } from '~/middleware/error-handler.midleware'
 import http from 'http'
 import debugRoutes from './routes/debug/debug.routes'
-// import router from '~/routes/index'
-import router from './routes/summarizeRoute'
+import router from '~/routes/index'
+// import router from './routes/summarizeRoute'
 
 const START_SERVER = async () => {
   const app = express()
@@ -26,7 +26,7 @@ const START_SERVER = async () => {
 
   app.use('/hackathon', router)
   app.use('/debug', debugRoutes)
-  app.use('/api', router)
+  // app.use('/api', router)
   app.use(errorHandlingMiddleware)
 
   // tạo server duy nhất
