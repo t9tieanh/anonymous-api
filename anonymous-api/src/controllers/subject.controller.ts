@@ -4,15 +4,6 @@ import subjectService, { CreateSubjectInput, UpdateSubjectInput } from '~/servic
 
 class SubjectController {
   async getAllSubject(req: Request, res: Response) {
-    // const userId = req.user?.userId
-    // if (!userId) {
-    //   return sendResponse(res, {
-    //     code: 400,
-    //     message: "UserId is missing",
-    //     result: null
-    //   })
-    // }
-    // const data = await subjectService.getAllSubjectByUser("69187f075de4316f17e5c791")
     const userId = req.user?.userId
     if (!userId) {
       return sendResponse(res, {
@@ -24,6 +15,7 @@ class SubjectController {
 
     console.log('USERID', userId)
     const data = await subjectService.getAllSubjectByUser(userId)
+    console.log("data", data)
     sendResponse(res, {
       code: 200,
       message: 'Get subject successfully',
@@ -47,7 +39,6 @@ class SubjectController {
       name: req.body.name,
       color: req.body.color
     }
-    const data = await subjectService.createSubject(req?.user?.userId, dto)
     const userId = req.user?.userId
     if (!userId) {
       return sendResponse(res, {
@@ -56,7 +47,7 @@ class SubjectController {
         result: null
       })
     }
-    // const data = await subjectService.createSubject(userId, dto)
+    const data = await subjectService.createSubject(userId, dto)
     sendResponse(res, {
       code: 200,
       message: 'Create subject successfully',

@@ -63,7 +63,7 @@ class UserService {
     const totalSummaries = await FileModel.countDocuments({
       ...filesQuery,
       // summary_content exists and is not null/empty
-      summary_content: { $exists: true, $nin: [null, ''] }
+      summaryContent: { $exists: true, $nin: [null, ''] }
     })
 
     // Get file ids to count quizzes

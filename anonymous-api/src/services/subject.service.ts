@@ -37,7 +37,6 @@ export interface UpdateSubjectInput {
 class SubjectService {
   async getAllSubjectByUser(userId: string): Promise<SubjectStatsDTO[]> {
     const userObjectId = new Types.ObjectId(userId)
-    console.log(userObjectId)
     const subjects = await SubjectModel.aggregate<SubjectStatsDTO>([
       {
         $match: {
