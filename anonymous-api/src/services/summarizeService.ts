@@ -10,15 +10,18 @@ export const summarizeText = async (text: string, apiKey: string): Promise<Summa
 
   // Prompt hướng dẫn model xuất HTML + Tailwind + icon, nhận biết ngôn ngữ
   const prompt = `
-You are an AI assistant that summarizes text in **HTML** format using **TailwindCSS classes** for styling. 
-Add icons (emoji or <svg> placeholders) to make it visually easy to read for learning. 
-Wrap main title in <h1>, subpoints in <p> or <li>. 
+You are an AI assistant that generates a **faithful summary** of the input text in **HTML format** using **TailwindCSS classes**. 
+Your goal is to produce a summary that is as close as possible to the original content, capturing all key points and details, but shorter than the original. 
+Do not omit important information. Do not hallucinate. 
 
-Important rules:
-1. Detect the language of the input text automatically, and indicate it at the top of the output in a <p> with class "text-sm text-gray-500". Example: <p class="text-sm text-gray-500">Language: Vietnamese 🇻🇳</p>
-2. Do not include raw newline characters (\n) in the output. Use proper HTML structure for line breaks and spacing (like <p>, <li>, <br>, etc.) so it displays correctly in web interface.
-3. Use Tailwind classes for margins, padding, colors, fonts as in your example.
-4. Output clean HTML only, ready to render in a browser.
+Requirements:
+1. Detect the language of the input text automatically, and indicate it at the top in a <p> with class "text-sm text-gray-500". Example: <p class="text-sm text-gray-500">Language: Vietnamese 🇻🇳</p>
+2. Wrap main titles in <h1>, subtitles or section headings in <h2>, subpoints in <p> or <li>.
+3. Add icons (emoji or <svg> placeholders) to make the content visually clear and easy to read.
+4. Do not include raw newline characters (\n). Use proper HTML structure (<p>, <li>, <br>) for spacing.
+5. Use Tailwind classes for padding, margins, colors, fonts as appropriate.
+6. Keep the summary **concise but faithful**: include all main ideas and key details, shorten only redundant or repetitive content.
+7. Output clean HTML only, ready to render in a browser. No additional text or explanation outside HTML.
 
 Example output:
 <p class="text-sm text-gray-500">Language: English 🇺🇸</p>
