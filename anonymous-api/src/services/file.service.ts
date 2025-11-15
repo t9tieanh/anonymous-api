@@ -4,9 +4,16 @@ import { SubjectModel } from '~/models/subject.model'
 import { Quiz } from '~/models/quiz.model'
 import ApiError from '~/middleware/ApiError'
 import { uploadToCloudinary, deleteFromCloudinary, formatFileSize } from '~/utils/cloudinaryUtil'
-import { uploadToCloudinary, deleteFromCloudinary, formatFileSize } from '~/utils/cloudinaryUtil'
 import path from 'path'
+import fs from 'fs'
+import os from 'os'
+import RabbitClient from '~/config/rabbitmq'
+import { QueueNameEnum } from '~/enums/rabbitQueue.enum'
 import { Types } from 'mongoose'
+import { summarizeText } from './summarize.service'
+import { extractTextFromFile } from '~/utils/fileParser'
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || ''
 
 /**
  * Interface cho file response
@@ -123,7 +130,8 @@ class FileService {
     generateQuiz: boolean = false,
     quizQuestions: number = 10,
     quizDifficulty: string = 'Medium',
-    uploadPreset?: string
+    uploadPreset?: string,
+    filePath?: string
   ) {
     // Kiểm tra subject có tồn tại và thuộc về user không
     const subject = await SubjectModel.findOne({
@@ -139,12 +147,7 @@ class FileService {
     const fileExtension = path.extname(file.originalname).toLowerCase()
 
     // Upload file lên Cloudinary với tên file gốc để giữ extension
-    const uploadResult = await uploadToCloudinary(
-      file.buffer,
-      file.originalname,
-      'hackathon-files',
-      uploadPreset
-    )
+    const uploadResult = await uploadToCloudinary(file.buffer, file.originalname, 'hackathon-files', uploadPreset)
 
     // Tạo file record trong database
     const newFile = await FileModel.create({
@@ -166,26 +169,58 @@ class FileService {
       $push: { children: newFile._id }
     })
 
-    // Tạo response cho processing status
-    const processing = {
-      summary: {
-        status: createSummary ? 'queued' : 'not_requested',
-        jobId: createSummary ? `job_sum_${newFile._id}` : undefined
-      },
-      quiz: {
-        status: generateQuiz ? 'queued' : 'not_requested',
-        jobId: generateQuiz ? `job_quiz_${newFile._id}` : undefined,
-        questions: generateQuiz ? quizQuestions : undefined,
-        difficulty: generateQuiz ? quizDifficulty : undefined
+    // reference unused params to silence linter (processing may be handled async by RabbitMQ)
+    void generateQuiz
+    void quizQuestions
+    void quizDifficulty
+
+    // Decide processing: if createSummary requested, push job to RabbitMQ and return queued status.
+    if (createSummary) {
+      await RabbitClient.getInstance()
+      const envelope = {
+        type: 'file-process',
+        payload: {
+          fileId: (newFile._id as Types.ObjectId).toString(),
+          cloudinaryUrl: newFile.cloudinaryUrl,
+          userId,
+          mimeType: newFile.mimeType || file.mimetype
+        }
+      }
+      await RabbitClient.publish(QueueNameEnum.FILE_PROCESS, envelope)
+
+      return {
+        file: this.formatFileResponse(newFile, subject.name, 0),
+        processing: { queued: true }
       }
     }
 
-    // TODO: Nếu createSummary = true, push job vào RabbitMQ để xử lý summary
-    // TODO: Nếu generateQuiz = true, push job vào RabbitMQ để xử lý quiz generation
+    // If no queue requested, do synchronous summarization (keep previous behavior)
+    // If caller provided a filePath use it, otherwise write buffer to a temp file
+    let extractedPath: string | undefined = filePath
+    let createdTmp = false
+    if (!extractedPath) {
+      const tmpName = `${Date.now()}-${Math.random().toString(36).slice(2)}${fileExtension}`
+      extractedPath = path.join(os.tmpdir(), tmpName)
+      await fs.promises.writeFile(extractedPath, file.buffer)
+      createdTmp = true
+    }
 
-    return {
-      file: this.formatFileResponse(newFile, subject.name, 0),
-      processing
+    try {
+      const text = await extractTextFromFile(extractedPath as string, file.mimetype)
+      const { summary, aiMatchScore } = await summarizeText(text, GEMINI_API_KEY)
+
+      if (createdTmp && extractedPath) fs.unlink(extractedPath, () => {})
+
+      return {
+        file: this.formatFileResponse(newFile, subject.name, 0),
+        summary: {
+          summary,
+          aiMatchScore
+        }
+      }
+    } catch (err) {
+      if (createdTmp && extractedPath) fs.unlink(extractedPath, () => {})
+      throw err
     }
   }
 
@@ -249,7 +284,7 @@ class FileService {
     if (file.cloudinaryPublicId) {
       try {
         await deleteFromCloudinary(file.cloudinaryPublicId, 'raw')
-      } catch (e) {
+      } catch {
         // ignore delete errors to avoid blocking user flow
       }
     }
@@ -285,7 +320,6 @@ class FileService {
       mimeType: file.mimeType || 'application/octet-stream',
       summaryCount: file.summaryCount || 0,
       quizCount: quizCount,
-      url: file.cloudinaryUrl || '',
       url: file.cloudinaryUrl || '',
       metadata: {
         // TODO: Có thể thêm metadata khác nếu cần

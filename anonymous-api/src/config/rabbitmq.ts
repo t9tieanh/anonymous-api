@@ -73,6 +73,9 @@ class RabbitClient {
         await nodemailService.sendMail(parsed)
       })
 
+      // Ensure file processing queue exists (consumers may be registered elsewhere)
+      await RabbitClient.channel.assertQueue(QueueNameEnum.FILE_PROCESS, { durable: true })
+
       console.log('Connection to RabbitMQ established')
     } catch (error) {
       console.error('RabbitMQ connection failed:', error)
@@ -98,12 +101,11 @@ class RabbitClient {
   }
 
   // Register consumer: bind then consume (handler receives parsed envelope)
-  public static async registerConsumer<T = any>(
+  public static async registerConsumer<T = unknown>(
     queue: string,
     exchange: string,
     routingKeys: string | string[],
-    handler: (envelope: { type: string; version?: string; correlationId?: string; payload: T }) => Promise<void>,
-    exchangeType: 'topic' | 'direct' | 'fanout' = 'topic'
+    handler: (envelope: { type: string; version?: string; correlationId?: string; payload: T }) => Promise<void>
   ): Promise<void> {
     if (!RabbitClient.channel) throw new Error('RabbitMQ channel is not initialized')
 
@@ -127,6 +129,13 @@ class RabbitClient {
     )
 
     console.log(`Consumer registered on queue ${queue}`)
+  }
+
+  // Publish a plain envelope to a queue (durable)
+  public static async publish(queue: string, envelope: unknown): Promise<void> {
+    if (!RabbitClient.channel) throw new Error('RabbitMQ channel is not initialized')
+    await RabbitClient.channel.assertQueue(queue, { durable: true })
+    RabbitClient.channel.sendToQueue(queue, Buffer.from(JSON.stringify(envelope)), { persistent: true })
   }
 }
 

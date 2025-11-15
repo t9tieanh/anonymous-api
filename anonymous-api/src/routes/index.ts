@@ -15,7 +15,7 @@ IndexRouter.use('/subjects', subjectsRoutes)
 IndexRouter.use('/subject', subjectRoutes)
 // IndexRouter.use(authen)
 IndexRouter.use('/user', userRoutes)
-IndexRouter.use('/file', fileRoutes) // File routes bao gồm cả /subjects/:subjectId/files và /files
+IndexRouter.use('/files', fileRoutes) // File routes bao gồm cả /subjects/:subjectId/files và /files
 IndexRouter.use('/generate-ai', ai_router)
 
 export default IndexRouter
