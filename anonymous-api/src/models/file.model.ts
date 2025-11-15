@@ -1,15 +1,17 @@
 import { Schema, model, Document, Types } from 'mongoose'
 
-export type FileType = 'file' | 'folder'
+export type FileType = '.docx' | 'doc' | 'pdf'
+export type StatusType = 'ACTIVE' | 'DELETED'
 
 export interface IFile extends Document {
   name: string
   type: FileType
-  storagePath?: string | null // null nếu là folder
-  parentId?: Types.ObjectId | null
-  children: Types.ObjectId[] // danh sách file/folder con
+  size: number
+  storagePath?: string
+  subjectId?: Types.ObjectId
   summary_content?: string
-  userId: Types.ObjectId // owner
+  updateDate: string
+  status: StatusType
 }
 
 const fileSchema = new Schema<IFile>(
@@ -21,31 +23,29 @@ const fileSchema = new Schema<IFile>(
     },
     type: {
       type: String,
-      enum: ['file', 'folder'],
+      enum: ['.docx', 'doc', 'pdf'],
+      required: true
+    },
+    status: {
+      type: String,
+      enum: ['ACTIVE', 'DELETED'],
+      default: 'ACTIVE'
+    },
+    size: {
+      type: Number,
       required: true
     },
     storagePath: {
       type: String,
       default: null // folder thì null
     },
-    parentId: {
+    subjectId: {
       type: Schema.Types.ObjectId,
-      ref: 'File',
+      ref: 'Subject',
       default: null
     },
-    children: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: 'File'
-      }
-    ],
     summary_content: {
       type: String
-    },
-    userId: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
     }
   },
   {
