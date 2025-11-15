@@ -8,7 +8,6 @@ export interface UserDoc extends Document {
   email: string
   image?: string
   name: string
-  phone?: string
   isModified(path: string): boolean
 }
 
@@ -26,16 +25,7 @@ const UserSchema: Schema = new Schema({
   },
 
   image: { type: String },
-  name: { type: String, required: true },
-  phone: { type: String },
-
-  // fields for role TEACHER
-  description: { type: String },
-  position: { type: String },
-  classroomsManaged: [{ type: Schema.Types.ObjectId, ref: 'Classroom', default: undefined }],
-
-  //fields for role Student
-  classroomsJoined: [{ type: Schema.Types.ObjectId, ref: 'Classroom', default: undefined }]
+  name: { type: String, required: true }
 })
 
 const UserModel: Model<UserDoc> = mongoose.model<UserDoc>('User', UserSchema)
