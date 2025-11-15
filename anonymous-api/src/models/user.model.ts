@@ -3,7 +3,6 @@ import validator from 'validator'
 
 // Define the interface for the User document -> kiểu trả về cho các document trong MongoDB
 export interface UserDoc extends Document {
-  username?: string
   password?: string
   email: string
   image?: string
@@ -12,12 +11,12 @@ export interface UserDoc extends Document {
 }
 
 const UserSchema: Schema = new Schema({
-  username: { type: String, unique: true },
   password: { type: String, select: false },
 
   email: {
     type: String,
     required: true,
+    unique: true,
     validate: {
       validator: (value: string) => validator.isEmail(value),
       message: 'Email không hợp lệ'
