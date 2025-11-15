@@ -17,7 +17,6 @@ IndexRouter.use('/', cloudinaryRoutes)
 
 IndexRouter.use(auth)
 
-// IndexRouter.use(auth)
 IndexRouter.use('/subjects', subjectsRoutes)
 IndexRouter.use('/subject', subjectRoutes)
 // IndexRouter.use(authen)

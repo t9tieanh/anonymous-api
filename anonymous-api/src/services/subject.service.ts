@@ -68,12 +68,7 @@ class SubjectService {
                 input: '$files',
                 as: 'f',
                 cond: {
-                  $and: [
-                    {
-                      $ne: ['$$f.summary_content', null]
-                    },
-                    { $ne: ['$$f.summary_content', ''] }
-                  ]
+                  $and: [{ $gt: [{ $strLenCP: { $ifNull: ['$$f.summaryContent', ''] } }, 0] }]
                 }
               }
             }
@@ -131,12 +126,7 @@ class SubjectService {
                 input: '$files',
                 as: 'f',
                 cond: {
-                  $and: [
-                    {
-                      $ne: ['$$f.summary_content', null]
-                    },
-                    { $ne: ['$$f.summary_content', ''] }
-                  ]
+                  $and: [{ $gt: [{ $strLenCP: { $ifNull: ['$$f.summaryContent', ''] } }, 0] }]
                 }
               }
             }

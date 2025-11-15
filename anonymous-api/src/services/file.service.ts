@@ -10,6 +10,8 @@ import os from 'os'
 import RabbitClient from '~/config/rabbitmq'
 import { QueueNameEnum } from '~/enums/rabbitQueue.enum'
 import { Types } from 'mongoose'
+import { ObjectId } from 'mongodb'
+
 import { summarizeText } from './summarize.service'
 import { extractTextFromFile } from '~/utils/fileParser'
 
@@ -33,6 +35,7 @@ interface FileResponse {
     pages?: number
     language?: string
   }
+  summaryContent?: string
 }
 
 /**
@@ -230,29 +233,45 @@ class FileService {
    * @param fileId - ID của file
    */
   async getFileById(userId: string, fileId: string): Promise<FileResponse> {
-    const file = await FileModel.findOne({
-      _id: fileId,
-      status: 'ACTIVE'
-    }).lean()
+    try {
+      const file = await FileModel.findOne({
+        _id: fileId,
+        status: 'ACTIVE'
+      }).lean()
 
-    if (!file) {
-      throw new ApiError(StatusCodes.NOT_FOUND, 'File không tồn tại')
+      if (!file) {
+        throw new ApiError(StatusCodes.NOT_FOUND, 'File không tồn tại')
+      }
+
+      console.log('userId', userId)
+      console.log('fileId', fileId)
+      console.log('file.subjectId', file.subjectId)
+
+      // Kiểm tra file có thuộc về user không (qua subject)
+      const subject = await SubjectModel.findOne({
+        _id: file.subjectId,
+        userId: userId
+      })
+
+      console.log('SUBJECT', subject)
+
+      if (!subject) {
+        throw new ApiError(StatusCodes.FORBIDDEN, 'Bạn không có quyền truy cập file này')
+      }
+
+      // Đếm số lượng quizzes
+      const quizCount = await Quiz.countDocuments({ fileId: file._id })
+
+      return this.formatFileResponse(file as IFile, subject.name, quizCount)
+    } catch (error: any) {
+      // Nếu là ApiError thì ném lại, còn lỗi khác thì log và ném lỗi 500
+      if (error instanceof ApiError) {
+        throw error
+      } else {
+        console.error('Lỗi khi lấy file:', error)
+        throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Đã xảy ra lỗi server')
+      }
     }
-
-    // Kiểm tra file có thuộc về user không (qua subject)
-    const subject = await SubjectModel.findOne({
-      _id: file.subjectId,
-      userId: userId
-    })
-
-    if (!subject) {
-      throw new ApiError(StatusCodes.FORBIDDEN, 'Bạn không có quyền truy cập file này')
-    }
-
-    // Đếm số lượng quizzes
-    const quizCount = await Quiz.countDocuments({ fileId: file._id })
-
-    return this.formatFileResponse(file as IFile, subject.name, quizCount)
   }
 
   /**
@@ -324,7 +343,8 @@ class FileService {
       metadata: {
         // TODO: Có thể thêm metadata khác nếu cần
         language: 'en'
-      }
+      },
+      summaryContent: file.summaryContent,
     }
   }
 }
