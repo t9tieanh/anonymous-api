@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios'
 import ApiError from '~/middleware/ApiError'
@@ -115,13 +114,13 @@ export const createQuiz = async (fileId: string, numQuestions: number, difficult
 
     try {
       Question.insertMany(questionDocs)
-      .then(result => {
-        const ids = result.map(doc => doc._id)
-        console.log('✔ Insert thành công!', ids)
-      })
-      .catch(err => {
-        console.error('❌ Insert thất bại!', err)
-      })
+        .then(result => {
+          const ids = result.map(doc => doc._id)
+          console.log('✔ Insert thành công!', ids)
+        })
+        .catch(err => {
+          console.error('❌ Insert thất bại!', err)
+        })
 
     } catch (e) {
       console.error('Failed to insert question docs', e)
@@ -139,7 +138,7 @@ export const createQuiz = async (fileId: string, numQuestions: number, difficult
     return questions
   } finally {
     // best-effort cleanup
-    fs.unlink(localPath, () => {})
+    fs.unlink(localPath, () => { })
   }
 }
 

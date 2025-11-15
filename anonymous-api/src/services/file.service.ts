@@ -213,7 +213,7 @@ class FileService {
       const text = await extractTextFromFile(extractedPath as string, file.mimetype)
       const { summary, aiMatchScore } = await summarizeText(text, GEMINI_API_KEY)
 
-      if (createdTmp && extractedPath) fs.unlink(extractedPath, () => {})
+      if (createdTmp && extractedPath) fs.unlink(extractedPath, () => { })
 
       return {
         file: this.formatFileResponse(newFile, subject.name, 0),
@@ -223,7 +223,7 @@ class FileService {
         }
       }
     } catch (err) {
-      if (createdTmp && extractedPath) fs.unlink(extractedPath, () => {})
+      if (createdTmp && extractedPath) fs.unlink(extractedPath, () => { })
       throw err
     }
   }
@@ -244,17 +244,13 @@ class FileService {
         throw new ApiError(StatusCodes.NOT_FOUND, 'File không tồn tại')
       }
 
-      console.log('userId', userId)
-      console.log('fileId', fileId)
-      console.log('file.subjectId', file.subjectId)
-
       // Kiểm tra file có thuộc về user không (qua subject)
       const subject = await SubjectModel.findOne({
         _id: file.subjectId,
         userId: userId
       })
 
-      console.log('SUBJECT', subject)
+      // console.log('SUBJECT', subject)
 
       if (!subject) {
         throw new ApiError(StatusCodes.FORBIDDEN, 'Bạn không có quyền truy cập file này')
