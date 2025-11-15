@@ -1,7 +1,7 @@
 import express, { Router } from 'express'
 import fileController from '~/controllers/file.controller'
 import authenticate from '~/middleware/authen.middleware'
-import { uploadFile } from '~/utils/minioUtil'
+import { uploadFile } from '~/utils/cloudinaryUtil'
 
 const fileRoutes: Router = express.Router()
 
