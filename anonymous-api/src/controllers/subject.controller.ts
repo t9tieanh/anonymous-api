@@ -21,6 +21,8 @@ class SubjectController {
         result: null
       })
     }
+
+    console.log('USERID', userId)
     const data = await subjectService.getAllSubjectByUser(userId)
     sendResponse(res, {
       code: 200,
