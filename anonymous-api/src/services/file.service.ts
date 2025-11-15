@@ -3,7 +3,7 @@ import { FileModel, IFile } from '~/models/file.model'
 import { SubjectModel } from '~/models/subject.model'
 import { Quiz } from '~/models/quiz.model'
 import ApiError from '~/middleware/ApiError'
-import { uploadToMinIO, deleteFromMinIO, formatFileSize } from '~/utils/minioUtil'
+import { uploadToCloudinary, deleteFromCloudinary, formatFileSize } from '~/utils/cloudinaryUtil'
 import path from 'path'
 import { Types } from 'mongoose'
 
@@ -136,8 +136,8 @@ class FileService {
     // Lấy extension của file
     const fileExtension = path.extname(file.originalname).toLowerCase()
 
-    // Upload file lên MinIO với tên file gốc để giữ extension
-    const uploadResult = await uploadToMinIO(file.buffer, file.originalname, 'hackathon-files')
+    // Upload file lên Cloudinary với tên file gốc để giữ extension
+    const uploadResult = await uploadToCloudinary(file.buffer, file.originalname, 'hackathon-files')
 
     // Tạo file record trong database
     const newFile = await FileModel.create({
@@ -145,8 +145,8 @@ class FileService {
       type: fileExtension as '.docx' | '.doc' | '.pdf' | '.md',
       size: file.size,
       mimeType: file.mimetype,
-      minioUrl: uploadResult.url,
-      minioObjectKey: uploadResult.objectKey,
+      cloudinaryUrl: uploadResult.secure_url,
+      cloudinaryPublicId: uploadResult.public_id,
       subjectId: new Types.ObjectId(subjectId),
       status: 'ACTIVE',
       uploadDate: new Date(),
@@ -238,9 +238,9 @@ class FileService {
       throw new ApiError(StatusCodes.FORBIDDEN, 'Bạn không có quyền xóa file này')
     }
 
-    // Xóa file từ MinIO
-    if (file.minioObjectKey) {
-      await deleteFromMinIO(file.minioObjectKey)
+    // Xóa file từ Cloudinary
+    if (file.cloudinaryPublicId) {
+      await deleteFromCloudinary(file.cloudinaryPublicId, 'raw')
     }
 
     // Soft delete: đánh dấu status = DELETED
@@ -274,7 +274,7 @@ class FileService {
       mimeType: file.mimeType || 'application/octet-stream',
       summaryCount: file.summaryCount || 0,
       quizCount: quizCount,
-      url: file.minioUrl || '',
+      url: file.cloudinaryUrl || '',
       metadata: {
         // TODO: Có thể thêm metadata khác nếu cần
         language: 'en'
