@@ -66,7 +66,8 @@ class FileController {
         generateQuiz = false,
         quizQuestions = 10,
         quizDifficulty = 'Medium',
-        upload_preset
+        upload_preset,
+        name
       } = req.body
 
       if (!subjectId) {
@@ -85,7 +86,8 @@ class FileController {
         shouldGenerateQuiz,
         parseInt(quizQuestions),
         quizDifficulty,
-        upload_preset
+        upload_preset,
+        name
       )
 
       sendResponse(res, {

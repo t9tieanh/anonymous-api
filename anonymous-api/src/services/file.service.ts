@@ -131,6 +131,7 @@ class FileService {
     quizQuestions: number = 10,
     quizDifficulty: string = 'Medium',
     uploadPreset?: string,
+    name?: string,
     filePath?: string
   ) {
     // Kiểm tra subject có tồn tại và thuộc về user không
@@ -149,9 +150,8 @@ class FileService {
     // Upload file lên Cloudinary với tên file gốc để giữ extension
     const uploadResult = await uploadToCloudinary(file.buffer, file.originalname, 'hackathon-files', uploadPreset)
 
-    // Tạo file record trong database
     const newFile = await FileModel.create({
-      name: file.originalname,
+      name: name || file.originalname,
       type: fileExtension as '.docx' | '.doc' | '.pdf' | '.md',
       size: file.size,
       mimeType: file.mimetype,
