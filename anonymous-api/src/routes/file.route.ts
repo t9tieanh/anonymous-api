@@ -6,6 +6,12 @@ import { getAllQuestionByQuiz, getQuizByFileId, getQuizById, submitQuizAnswers }
 
 const fileRoutes: Router = express.Router()
 
+// GET all files - đặt trước để tránh conflict với routes có params
+fileRoutes.get('', authenticate, fileController.getAllFiles)
+
+// Search files - đặt trước các route có params để tránh conflict
+fileRoutes.get('/search', authenticate, fileController.searchFiles)
+
 fileRoutes.get('/subjects/:subjectId/files', authenticate, fileController.getFilesBySubject)
 
 /**

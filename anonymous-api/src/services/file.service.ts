@@ -321,6 +321,130 @@ class FileService {
   }
 
   /**
+   * Tìm kiếm files theo tên
+   * @param userId - ID của user
+   * @param query - Từ khóa tìm kiếm
+   * @param page - Số trang
+   * @param limit - Số items mỗi trang
+   */
+  async searchFiles(
+    userId: string,
+    query: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{ files: FileResponse[]; pagination: PaginationResponse }> {
+    // Lấy tất cả subjects của user
+    const subjects = await SubjectModel.find({ userId }).select('_id name').lean()
+    const subjectIds = subjects.map((s) => s._id)
+    const subjectMap = new Map(subjects.map((s) => [s._id.toString(), s.name]))
+
+    // Build query filter với text search
+    const filter: Record<string, unknown> = {
+      subjectId: { $in: subjectIds },
+      status: 'ACTIVE'
+    }
+
+    // Nếu có query, tìm kiếm theo tên file (case-insensitive)
+    if (query && query.trim()) {
+      filter.name = { $regex: query.trim(), $options: 'i' }
+    }
+
+    // Đếm tổng số files
+    const totalItems = await FileModel.countDocuments(filter)
+
+    // Tính toán pagination
+    const totalPages = Math.ceil(totalItems / limit)
+    const skip = (page - 1) * limit
+
+    // Lấy files với pagination
+    const files = await FileModel.find(filter)
+      .sort({ uploadDate: -1 }) // Sắp xếp theo ngày upload mới nhất
+      .skip(skip)
+      .limit(limit)
+      .lean()
+
+    // Đếm số lượng quizzes cho mỗi file
+    const filesWithCounts = await Promise.all(
+      files.map(async (file) => {
+        const quizCount = await Quiz.countDocuments({ fileId: file._id })
+        const subjectName = subjectMap.get(file.subjectId?.toString() || '') || 'Unknown'
+
+        return this.formatFileResponse(file as IFile, subjectName, quizCount)
+      })
+    )
+
+    return {
+      files: filesWithCounts,
+      pagination: {
+        currentPage: page,
+        totalPages: totalPages,
+        totalItems: totalItems,
+        itemsPerPage: limit
+      }
+    }
+  }
+
+  /**
+   * Lấy tất cả files của user (không cần subjectId)
+   * @param userId - ID của user
+   * @param page - Số trang
+   * @param limit - Số items mỗi trang
+   */
+  async getAllFilesByUser(
+    userId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{ files: FileResponse[]; pagination: PaginationResponse }> {
+    // Convert userId string sang ObjectId
+    const userObjectId = new Types.ObjectId(userId)
+
+    // Lấy tất cả subjects của user
+    const subjects = await SubjectModel.find({ userId: userObjectId }).select('_id name').lean()
+    const subjectIds = subjects.map((s) => s._id)
+    const subjectMap = new Map(subjects.map((s) => [s._id.toString(), s.name]))
+
+    // Build query filter
+    const filter: Record<string, unknown> = {
+      subjectId: { $in: subjectIds },
+      status: 'ACTIVE'
+    }
+
+    // Đếm tổng số files
+    const totalItems = await FileModel.countDocuments(filter)
+
+    // Tính toán pagination
+    const totalPages = Math.ceil(totalItems / limit)
+    const skip = (page - 1) * limit
+
+    // Lấy files với pagination
+    const files = await FileModel.find(filter)
+      .sort({ uploadDate: -1 }) // Sắp xếp theo ngày upload mới nhất
+      .skip(skip)
+      .limit(limit)
+      .lean()
+
+    // Đếm số lượng quizzes cho mỗi file
+    const filesWithCounts = await Promise.all(
+      files.map(async (file) => {
+        const quizCount = await Quiz.countDocuments({ fileId: file._id })
+        const subjectName = subjectMap.get(file.subjectId?.toString() || '') || 'Unknown'
+
+        return this.formatFileResponse(file as IFile, subjectName, quizCount)
+      })
+    )
+
+    return {
+      files: filesWithCounts,
+      pagination: {
+        currentPage: page,
+        totalPages: totalPages,
+        totalItems: totalItems,
+        itemsPerPage: limit
+      }
+    }
+  }
+
+  /**
    * Format file data thành response format
    * @param file - File document
    * @param subjectName - Tên subject

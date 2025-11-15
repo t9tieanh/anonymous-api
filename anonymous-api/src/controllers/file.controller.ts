@@ -265,6 +265,71 @@ class FileController {
       next(error)
     }
   }
+
+  /**
+   * GET /files/search?query=...
+   * Tìm kiếm files theo tên
+   */
+  async searchFiles(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user?.userId
+      const { query = '', page = '1', limit = '20' } = req.query
+
+      if (!userId) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, 'Bạn cần đăng nhập để tìm kiếm')
+      }
+
+      const result = await fileService.searchFiles(
+        userId,
+        query as string,
+        parseInt(page as string),
+        parseInt(limit as string)
+      )
+
+      sendResponse(res, {
+        code: StatusCodes.OK,
+        message: 'Tìm kiếm files thành công',
+        result: {
+          files: result.files,
+          pagination: result.pagination
+        }
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  /**
+   * GET /files
+   * Lấy tất cả files của user
+   */
+  async getAllFiles(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user?.userId
+      const { page = '1', limit = '20' } = req.query
+
+      if (!userId) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, 'Bạn cần đăng nhập để truy cập')
+      }
+
+      const result = await fileService.getAllFilesByUser(
+        userId,
+        parseInt(page as string),
+        parseInt(limit as string)
+      )
+
+      sendResponse(res, {
+        code: StatusCodes.OK,
+        message: 'Lấy danh sách files thành công',
+        result: {
+          files: result.files,
+          pagination: result.pagination
+        }
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
 }
 
 export default new FileController()
