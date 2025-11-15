@@ -8,7 +8,18 @@ const fileRoutes: Router = express.Router()
 
 fileRoutes.get('/subjects/:subjectId/files', authenticate, fileController.getFilesBySubject)
 
-fileRoutes.post('/files', authenticate, uploadFile.single('file'), fileController.uploadFile)
+/**
+ * @route   POST /files
+ * @desc    Upload file mới với optional processing (summary, quiz)
+ * @access  Private (cần authentication)
+ * @body    file (binary) - File cần upload (PDF, DOCX, DOC, MD)
+ *          subject (string) - ID của subject
+ *          createSummary (optional) - Có tạo summary không
+ *          generateQuiz (optional) - Có tạo quiz không
+ *          quizQuestions (optional) - Số câu hỏi (default: 10)
+ *          quizDifficulty (optional) - Độ khó (Easy/Medium/Hard)
+ */
+fileRoutes.post('', authenticate, uploadFile.single('file'), fileController.uploadFile)
 
 fileRoutes.get('/:fileId', authenticate, fileController.getFileById)
 

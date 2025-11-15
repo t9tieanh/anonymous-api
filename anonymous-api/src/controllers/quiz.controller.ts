@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from 'express'
-import { extractTextFromFile } from '../utils/fileParser'
 import {
-  generateQuiz,
   getAllQuizByFileId,
   getQuizByIdService,
   getAllQuestionByQuiz as getAllQuestionByQuizService,
@@ -11,28 +9,22 @@ import {
   getAllQuizzes as getAllQuizByUserId
 } from '../services/quiz.service'
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || ''
+import { createQuiz } from '../services/quiz.service'
+import sendResponse from '../dto/response/send-response'
 
 export const handleGenerateQuiz = async (req: Request, res: Response) => {
   try {
-    if (!req.file) return res.status(400).json({ message: 'No file uploaded' })
+    const numQuestions = req.data.numQuestions ?? 5
+    const difficulty = req.data.difficulty ?? 'medium'
 
-    const numQuestionsRaw = (req.body.numQuestions ?? req.query.numQuestions) as string | number | undefined
-    const difficultyRaw = (req.body.difficulty ?? req.query.difficulty) as string | undefined
-
-    const numQuestions = Number(numQuestionsRaw ?? 5)
-    if (!Number.isFinite(numQuestions) || numQuestions < 1 || numQuestions > 50) {
-      return res.status(400).json({ message: 'numQuestions must be a number between 1 and 50' })
-    }
-    const difficulty = (difficultyRaw || 'medium').toString()
-
-    const text = await extractTextFromFile(req.file.path, req.file.mimetype)
-    const questions = await generateQuiz({ text, apiKey: GEMINI_API_KEY, numQuestions, difficulty })
-
-    res.json({ questions })
+    const questions = await createQuiz(req.data.id, numQuestions, difficulty)
+    sendResponse(res, {
+      code: 200,
+      message: 'Quiz generated successfully',
+      result: { questions }
+    })
   } catch (err: any) {
     console.error(err)
-    res.status(500).json({ error: err.message })
   }
 }
 
