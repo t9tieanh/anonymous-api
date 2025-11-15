@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { extractTextFromFile } from '../utils/fileParser';
-import { summarizeText } from '../services/summarizeService';
+import { summarizeText } from '../services/summarize.service';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 

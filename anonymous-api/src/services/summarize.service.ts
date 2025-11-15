@@ -1,12 +1,13 @@
-import axios from 'axios';
+/* eslint-disable no-useless-escape */
+import axios from 'axios'
 
 export interface SummarizeResult {
-  summary: string;
-  aiMatchScore: number; // 0..1 similarity between original text and summarized content
+  summary: string
+  aiMatchScore: number // 0..1 similarity between original text and summarized content
 }
 
 export const summarizeText = async (text: string, apiKey: string): Promise<SummarizeResult> => {
-  const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+  const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'
 
   // Prompt hướng dẫn model xuất HTML + Tailwind + icon, nhận biết ngôn ngữ
   const prompt = `
@@ -30,8 +31,7 @@ Example output:
 
 Text to summarize:
 ${text}
-`;
-
+`
 
   const response = await axios.post(
     endpoint,
@@ -52,22 +52,21 @@ ${text}
         'Content-Type': 'application/json'
       }
     }
-  );
+  )
 
-  const candidates = response.data?.candidates;
+  const candidates = response.data?.candidates
   if (!candidates || candidates.length === 0) {
-    throw new Error('No candidate returned from Gemini API');
+    throw new Error('No candidate returned from Gemini API')
   }
 
-  let output = candidates[0].content.parts
-    .map((part: any) => part.text)
-    .join('');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const output = candidates[0].content.parts.map((part: any) => part.text).join('')
 
   const cleanHtmlOutput = (s: string): string => {
-    if (!s) return '';
-    s = s.replace(/```html|```/g, '');
+    if (!s) return ''
+    s = s.replace(/```html|```/g, '')
     if (s.startsWith('"') && s.endsWith('"')) {
-      s = s.slice(1, -1);
+      s = s.slice(1, -1)
     }
     s = s
       .replace(/\\\"/g, '"')
@@ -76,30 +75,30 @@ ${text}
       .replace(/\\r/g, '')
       .replace(/\\t/g, ' ')
       .replace(/\\/g, '')
-      .replace(/\r?\n|\r/g, '');
+      .replace(/\r?\n|\r/g, '')
     // Gom khoảng trắng
-    s = s.replace(/\s{2,}/g, ' ').trim();
-    return s;
-  };
+    s = s.replace(/\s{2,}/g, ' ').trim()
+    return s
+  }
 
-  const summary = cleanHtmlOutput(output);
+  const summary = cleanHtmlOutput(output)
 
   // Tính điểm tương đồng đơn giản (Jaccard) giữa văn bản gốc và bản tóm tắt (đã loại HTML)
-  const stripHtml = (html: string) => html.replace(/<[^>]*>/g, ' ');
+  const stripHtml = (html: string) => html.replace(/<[^>]*>/g, ' ')
   const normalize = (s: string) =>
     s
       .toLowerCase()
       .replace(/&nbsp;|&amp;|&lt;|&gt;|&quot;|&#39;/g, ' ')
       .replace(/[^\p{L}\p{N}\s]+/gu, ' ') // bỏ ký tự không phải chữ/số (unicode)
       .replace(/\s{2,}/g, ' ')
-      .trim();
+      .trim()
 
-  const toSet = (s: string) => new Set(normalize(s).split(' ').filter(Boolean));
-  const originalSet = toSet(text || '');
-  const summarySet = toSet(stripHtml(summary));
-  const unionSize = new Set([...originalSet, ...summarySet]).size;
-  const intersectionSize = [...summarySet].filter((w) => originalSet.has(w)).length;
-  const aiMatchScore = unionSize === 0 ? 0 : intersectionSize / unionSize;
+  const toSet = (s: string) => new Set(normalize(s).split(' ').filter(Boolean))
+  const originalSet = toSet(text || '')
+  const summarySet = toSet(stripHtml(summary))
+  const unionSize = new Set([...originalSet, ...summarySet]).size
+  const intersectionSize = [...summarySet].filter((w) => originalSet.has(w)).length
+  const aiMatchScore = unionSize === 0 ? 0 : intersectionSize / unionSize
 
-  return { summary, aiMatchScore };
-};
+  return { summary, aiMatchScore }
+}

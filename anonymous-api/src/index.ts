@@ -7,7 +7,7 @@ import { errorHandlingMiddleware } from '~/middleware/error-handler.midleware'
 import http from 'http'
 import debugRoutes from './routes/debug/debug.routes'
 // import router from '~/routes/index'
-import router from './routes/summarizeRoute'
+import router from './routes/summarize.route'
 
 const START_SERVER = async () => {
   const app = express()
