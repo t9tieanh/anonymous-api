@@ -8,8 +8,8 @@ export interface IFile extends Document {
   type: FileType // Loại file: .docx, .doc, .pdf, .md
   size: number // Kích thước file tính bằng bytes
   storagePath?: string // Đường dẫn lưu trữ cũ (deprecated, giữ lại để tương thích)
-  minioUrl?: string // URL public từ MinIO để truy cập file
-  minioObjectKey?: string // Object key (path) của file trong MinIO bucket (dùng để xóa)
+  cloudinaryUrl?: string // URL public từ MinIO để truy cập file
+  cloudinaryPublicId?: string // Object key (path) của file trong MinIO bucket (dùng để xóa)
   mimeType?: string // MIME type của file (application/pdf, application/vnd.openxmlformats...)
   subjectId?: Types.ObjectId // Tham chiếu đến Subject (môn học)
   summary_content?: string // Nội dung tóm tắt của file (nếu có)
@@ -46,11 +46,11 @@ const fileSchema = new Schema<IFile>(
       type: String,
       default: null // Giữ lại cho tương thích, không dùng nữa
     },
-    minioUrl: {
+    cloudinaryUrl: {
       type: String,
       default: null // URL public để truy cập file từ MinIO
     },
-    minioObjectKey: {
+    cloudinaryPublicId: {
       type: String,
       default: null // Object key (path) để xóa file trên MinIO
     },

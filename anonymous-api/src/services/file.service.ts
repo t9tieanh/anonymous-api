@@ -151,8 +151,8 @@ class FileService {
       type: fileExtension as '.docx' | '.doc' | '.pdf' | '.md',
       size: file.size,
       mimeType: file.mimetype,
-      minioUrl: uploadResult.secure_url, // reuse field to store Cloudinary URL
-      minioObjectKey: uploadResult.public_id, // reuse field to store Cloudinary public_id
+      cloudinaryUrl: uploadResult.secure_url, // reuse field to store Cloudinary URL
+      cloudinaryPublicId: uploadResult.public_id, // reuse field to store Cloudinary public_id
       subjectId: new Types.ObjectId(subjectId),
       status: 'ACTIVE',
       uploadDate: new Date(),
@@ -245,9 +245,9 @@ class FileService {
     }
 
     // Xóa file trên Cloudinary nếu có public_id
-    if (file.minioObjectKey) {
+    if (file.cloudinaryPublicId) {
       try {
-        await deleteFromCloudinary(file.minioObjectKey, 'raw')
+        await deleteFromCloudinary(file.cloudinaryPublicId, 'raw')
       } catch (e) {
         // ignore delete errors to avoid blocking user flow
       }
@@ -284,7 +284,7 @@ class FileService {
       mimeType: file.mimeType || 'application/octet-stream',
       summaryCount: file.summaryCount || 0,
       quizCount: quizCount,
-      url: file.minioUrl || '',
+      url: file.cloudinaryUrl || '',
       metadata: {
         // TODO: Có thể thêm metadata khác nếu cần
         language: 'en'
