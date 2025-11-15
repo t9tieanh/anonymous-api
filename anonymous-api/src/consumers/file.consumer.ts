@@ -58,10 +58,12 @@ const start = async () => {
         const text = await extractTextFromFile(tmpPath, mimetype || '')
         const { summary } = await summarizeText(text, process.env.GEMINI_API_KEY || '')
 
+        console.log('Generated summary for fileId', fileId,'----', text, summary)
+
         // update file doc
         if (fileId) {
           await FileModel.findByIdAndUpdate(fileId, {
-            $set: { summary_content: summary },
+            $set: { summaryContent: summary },
             $inc: { summaryCount: 1 }
           })
         }
