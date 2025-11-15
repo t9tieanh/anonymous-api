@@ -12,6 +12,7 @@
     "prettier": "prettier --check .",
     "prettier:fix": "prettier --write .",
     "gen-sign": "node src/tests/generatesignUrl.js"
+    ,"backfill:explain": "node scripts/backfill-explain.js"
   },
   "keywords": [],
   "author": "",
