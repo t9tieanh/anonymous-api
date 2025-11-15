@@ -1,5 +1,7 @@
 import mongoose, { Schema, Document, Types } from 'mongoose'
 
+export type StatusType = 'ACTIVE' | 'DELETED'
+
 export interface ISubject extends Document {
   userId: Types.ObjectId // owner
   name: string
@@ -7,6 +9,7 @@ export interface ISubject extends Document {
   children: Types.ObjectId[]
   createdAt: Date
   updatedAt: Date
+  status: StatusType
 }
 
 const SubjectSchema = new Schema<ISubject>(
@@ -31,6 +34,11 @@ const SubjectSchema = new Schema<ISubject>(
       type: String,
       required: true,
       trim: true
+    },
+    status: {
+      type: String,
+      enum: ['ACTIVE', 'DELETED'],
+      default: 'ACTIVE'
     }
   },
   { timestamps: true }

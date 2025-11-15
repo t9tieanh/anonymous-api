@@ -9,4 +9,5 @@ const router = Router()
 router.get('', subjectController.getAllSubject)
 router.post('', subjectController.createSubject)
 router.put('', subjectController.updateSubject)
+
 export default router

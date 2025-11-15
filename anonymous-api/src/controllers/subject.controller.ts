@@ -77,6 +77,27 @@ class SubjectController {
       }
     })
   }
+  async deleteSubject(req: Request, res: Response) {
+    console.log('Update subject controller', req?.user?.userId)
+    console.log(req)
+    const userId = req.user?.userId
+    if (!userId) {
+      return sendResponse(res, {
+        code: 400,
+        message: "UserId is missing",
+        result: null
+      })
+    }
+    const subjectId = req?.params?.subjectId
+    const data = await subjectService.deleteSubject(userId, subjectId)
+    sendResponse(res, {
+      code: 200,
+      message: 'Update subject successfully',
+      result: {
+        data
+      }
+    })
+  }
 }
 
 export default new SubjectController()

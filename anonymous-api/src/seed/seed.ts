@@ -27,30 +27,34 @@ async function seed() {
     await Question.deleteMany({})
 
     // 1️⃣ User demo
-    const user = await UserModel.create({
-      username: 'student01',
-      email: 'student@example.com',
-      name: 'Student Demo'
-    })
-
+    const user = await UserModel.findById('6918a6525b6a996da85b7478').lean()
+    // const user = await UserModel.create({
+    //   username: 'student01',
+    //   email: 'student@example.com',
+    //   name: 'Student Demo'
+    // })
+    if (user == null) return
     // 2️⃣ Subjects demo
     const subjects = await SubjectModel.insertMany([
       {
         name: 'Toán cao cấp',
         color: '#ff6b6b',
-        userId: user._id,
+        userId: user.id,
+        status: 'ACTIVE' as const,
         children: []
       },
       {
         name: 'Cấu trúc dữ liệu & giải thuật',
         color: '#4dabf7',
         userId: user._id,
+        status: 'ACTIVE' as const,
         children: []
       },
       {
         name: 'Lập trình Web nâng cao',
         color: '#51cf66',
         userId: user._id,
+        status: 'ACTIVE' as const,
         children: []
       }
     ])
@@ -111,9 +115,8 @@ async function seed() {
       }
     ])
 
-// Nếu muốn TS hiểu rõ type:
-const typedFiles = files as unknown as IFile[]
-
+    // Nếu muốn TS hiểu rõ type:
+    const typedFiles = files as unknown as IFile[]
 
     // 4️⃣ Gắn children vào Subject (danh sách file._id)
     for (const sub of subjects) {
@@ -151,7 +154,6 @@ const typedFiles = files as unknown as IFile[]
         highestScore: 7
       }
     ] as IQuiz[])
-
 
     // 6️⃣ Helper tạo question
     const makeQuestion = (quiz: IQuiz, index: number) => ({

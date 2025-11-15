@@ -2,6 +2,10 @@ import mongoose, { Types } from 'mongoose'
 import { SubjectModel } from '~/models/subject.model'
 import { IFile } from '~/models/file.model'
 
+export enum StatusType {
+  ACTIVE = 'ACTIVE',
+  DELETED = 'DELETED'
+}
 export interface SubjectStatsDTO {
   id: string
   name: string
@@ -37,7 +41,8 @@ class SubjectService {
     const subjects = await SubjectModel.aggregate<SubjectStatsDTO>([
       {
         $match: {
-          userId: userObjectId
+          userId: userObjectId,
+          status: StatusType.ACTIVE
         }
       },
       // Lấy tất cả file thuộc subject này
@@ -99,7 +104,10 @@ class SubjectService {
   async getSubjectById(subjectId: string): Promise<SubjectDetailDTO> {
     const subjects = await SubjectModel.aggregate([
       {
-        $match: { _id: new mongoose.Types.ObjectId(subjectId) }
+        $match: {
+          _id: new mongoose.Types.ObjectId(subjectId),
+          status: StatusType.ACTIVE
+        }
       },
       {
         $lookup: {
@@ -146,6 +154,9 @@ class SubjectService {
       }
     ])
 
+    if (!subjects[0]) {
+      throw new Error("Subject not found")
+    }
     return subjects[0]
   }
 
@@ -176,6 +187,30 @@ class SubjectService {
       },
       {
         name: dto.name
+      },
+      {
+        new: true
+      }
+    )
+
+    if (!updated) {
+      throw new Error("Subject not found or you don't have permission")
+    }
+
+    return {
+      id: updated?.id,
+      name: updated?.name,
+      color: updated?.color
+    }
+  }
+  async deleteSubject(userId: string, subjectId: string) {
+    const updated = await SubjectModel.findOneAndUpdate(
+      {
+        _id: subjectId,
+        userId: new Types.ObjectId(userId)
+      },
+      {
+        status: StatusType.DELETED
       },
       {
         new: true

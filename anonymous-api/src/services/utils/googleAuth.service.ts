@@ -60,6 +60,7 @@ async function getGoogleUser({
 }
 
 const loginGoogle = async ({ code }: { code: string }) => {
+  console.log('Đã vào')
   const { id_token, access_token } = await getGoogleOauthToken({ code })
 
   const userData = await getGoogleUser({
